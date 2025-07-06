@@ -45,14 +45,7 @@ const PropertyCard = ({ property }) => {
               {formatPrice(property.price)}
             </span>
           </div>
-
-          {/* View Details Overlay */}
-          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
-            <span className="bg-white text-gray-900 px-4 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover:translate-y-0 flex items-center gap-2 font-semibold">
-              <Eye className="w-4 h-4" />
-              View Details
-            </span>
-          </div>
+        
         </div>
 
         {/* Content */}

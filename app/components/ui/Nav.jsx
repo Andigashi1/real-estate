@@ -25,9 +25,9 @@ const Nav = () => {
     <div className="py-6 px-8 lg:px-12 font-bold shrink-0 absolute w-full bg-background">
       <div className="relative flex items-center justify-between gap-10">
         <ul className="gap-10 hidden lg:flex uppercase">
-          <Link href='.'>Home</Link>
-          <Link href='projects'>Projects</Link>
-          <Link href='contact'>Contact</Link>
+          <Link href='/'>Home</Link>
+          <Link href='/projects'>Projects</Link>
+          <Link href='/contact'>Contact</Link>
         </ul>
         <h1 className={`${menuOpen ? 'text-white' : null} z-50 text-2xl lg:text-3xl lg:absolute left-1/2 lg:-translate-x-1/2 leading-7 text-center`}>
           Dubai By <br /> Flamur
@@ -56,9 +56,9 @@ const Nav = () => {
         {menuOpen && (
           <div className="inset-0 text-center bg-black/75 fixed top-0 left-0 w-full h-full z-40 flex flex-col items-center justify-center">
             <ul className="flex flex-col gap-10 text-2xl uppercase text-white mb-8">
-              <Link href='.' onClick={() => setMenuOpen(false)}>Home</Link>
-              <Link href='projects' onClick={() => setMenuOpen(false)}>Projects</Link>
-              <Link href='contact' onClick={() => setMenuOpen(false)}>Contact</Link>
+              <Link href='/' onClick={() => setMenuOpen(false)}>Home</Link>
+              <Link href='/projects' onClick={() => setMenuOpen(false)}>Projects</Link>
+              <Link href='/contact' onClick={() => setMenuOpen(false)}>Contact</Link>
             </ul>
             <div className="flex gap-6 mb-8">
               <Instagram color="white" />
