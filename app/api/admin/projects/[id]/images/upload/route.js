@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
-import { writeFile } from 'fs/promises';
+import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
-import { prisma } from '@/app/lib/prisma'; // update path as needed
+import { prisma } from '@/app/lib/prisma';
+
+// ✅ Ensure this runs in Node.js (not Edge Runtime)
+export const runtime = 'nodejs';
 
 export async function POST(request, { params }) {
   try {
@@ -20,17 +23,14 @@ export async function POST(request, { params }) {
     const filename = `${timestamp}_${originalName}`;
     const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'projects');
 
-    const fs = require('fs');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
+    // ✅ Make sure directory exists
+    await mkdir(uploadDir, { recursive: true });
 
     const filepath = path.join(uploadDir, filename);
     await writeFile(filepath, buffer);
 
     const imageUrl = `/uploads/projects/${filename}`;
 
-    // ✅ Save to DB and link to project
     const newImage = await prisma.image.create({
       data: {
         url: imageUrl,
@@ -39,7 +39,6 @@ export async function POST(request, { params }) {
     });
 
     return NextResponse.json(newImage, { status: 200 });
-
   } catch (error) {
     console.error('Upload error:', error);
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
