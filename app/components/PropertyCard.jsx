@@ -18,8 +18,7 @@ const PropertyCard = ({ property }) => {
     return `${bedrooms} BR`;
   };
 
-  const imageUrl =
-    property.images?.[0]?.url || '/api/placeholder/400/300';
+  const imageUrl = property.images?.[0]?.url || 'https://via.placeholder.com/300x200?text=No+Image+Available';
 
   return (
     <Link href={`/projects/${property.id}`} className="group">

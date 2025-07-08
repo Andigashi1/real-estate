@@ -133,22 +133,23 @@ export default function ProjectForm({ params }) {
         if (!file.type.startsWith('image/')) continue;
         if (file.size > 5 * 1024 * 1024) continue;
 
-        if (!isEdit) {
-          const previewUrl = URL.createObjectURL(file);
-          setImages(prev => [...prev, {
-            id: Date.now() + Math.random(),
-            url: previewUrl,
-            file,
-            isNew: true,
-            isLocal: true
-          }]);
-        } else {
+        const previewUrl = URL.createObjectURL(file);
+        setImages(prev => [...prev, {
+          id: Date.now() + Math.random(),
+          url: previewUrl,
+          file,
+          isNew: true,
+          isLocal: true
+        }]);
+
+        if (isEdit) {
           const formData = new FormData();
           formData.append('image', file);
           const res = await fetch(`/api/admin/projects/${params.id}/images/upload`, {
             method: 'POST',
             body: formData
           });
+
           if (res.ok) {
             const newImage = await res.json();
             setImages(prev => [...prev, newImage]);
@@ -217,16 +218,14 @@ export default function ProjectForm({ params }) {
           if (img.isLocal && img.file) {
             const formData = new FormData();
             formData.append('image', img.file);
-            await fetch(`/api/admin/projects/${project.id}/images/upload`, {
+            const uploadResponse = await fetch(`/api/admin/projects/${project.id}/images/upload`, {
               method: 'POST',
               body: formData,
             });
-          } else if (img.url && !img.isLocal) {
-            await fetch(`/api/admin/projects/${project.id}/images`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ url: img.url }),
-            });
+            if (!uploadResponse.ok) {
+              console.error(`Failed to upload image ${img.file.name}`);
+              alert(`Failed to upload image: ${img.file.name}`);
+            }
           }
         }
       }
@@ -258,149 +257,118 @@ export default function ProjectForm({ params }) {
         {/* Project Details Section */}
         <div className="bg-white p-6 rounded-lg shadow">
           <h2 className="text-xl font-semibold mb-4">Project Details</h2>
-          
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Title *
-              </label>
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">Title</label>
               <input
                 type="text"
+                id="title"
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                placeholder="Enter project title"
               />
             </div>
-
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Slug *
-              </label>
+              <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-1">Slug</label>
               <input
                 type="text"
+                id="slug"
                 name="slug"
                 value={formData.slug}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                placeholder="Enter project slug"
+                disabled={isEdit}
               />
-              <p className="text-sm text-gray-500 mt-1">
-                URL-friendly version of the title (auto-generated for new projects)
-              </p>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Description *
-              </label>
+            <div className="md:col-span-2">
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
               <textarea
+                id="description"
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
+                rows="3"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                placeholder="Enter project description"
+              ></textarea>
+            </div>
+            <div>
+              <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">Price (AED)</label>
+              <input
+                type="number"
+                id="price"
+                name="price"
+                value={formData.price}
+                onChange={handleChange}
                 required
-                rows={4}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                placeholder="Enter price"
               />
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Price (AED) *
-                </label>
-                <input
-                  type="number"
-                  name="price"
-                  value={formData.price}
-                  onChange={handleChange}
-                  required
-                  min="0"
-                  step="0.01"
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Area (m²) *
-                </label>
-                <input
-                  type="number"
-                  name="area"
-                  value={formData.area}
-                  onChange={handleChange}
-                  required
-                  min="0"
-                  step="0.01"
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Location *
-              </label>
+              <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">Location</label>
               <input
                 type="text"
+                id="location"
                 name="location"
                 value={formData.location}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                placeholder="Enter location"
               />
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Bedrooms *
-                </label>
-                <input
-                  type="number"
-                  name="bedrooms"
-                  value={formData.bedrooms}
-                  onChange={handleChange}
-                  required
-                  min="1"
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Type *
-                </label>
-                <select
-                  name="type"
-                  value={formData.type}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select type</option>
-                  <option value="apartment">Apartment</option>
-                  <option value="villa">Villa</option>
-                  <option value="townhouse">Townhouse</option>
-                  <option value="penthouse">Penthouse</option>
-                  <option value="studio">Studio</option>
-                </select>
-              </div>
-            </div>
-
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Developer *
-              </label>
+              <label htmlFor="area" className="block text-sm font-medium text-gray-700 mb-1">Area (m²)</label>
+              <input
+                type="number"
+                id="area"
+                name="area"
+                value={formData.area}
+                onChange={handleChange}
+                className="w-full p-2 border border-gray-300 rounded-md"
+                placeholder="Enter area"
+              />
+            </div>
+            <div>
+              <label htmlFor="bedrooms" className="block text-sm font-medium text-gray-700 mb-1">Bedrooms</label>
+              <input
+                type="number"
+                id="bedrooms"
+                name="bedrooms"
+                value={formData.bedrooms}
+                onChange={handleChange}
+                className="w-full p-2 border border-gray-300 rounded-md"
+                placeholder="Enter number of bedrooms"
+              />
+            </div>
+            <div>
+              <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">Type</label>
               <input
                 type="text"
+                id="type"
+                name="type"
+                value={formData.type}
+                onChange={handleChange}
+                className="w-full p-2 border border-gray-300 rounded-md"
+                placeholder="Enter property type"
+              />
+            </div>
+            <div>
+              <label htmlFor="developer" className="block text-sm font-medium text-gray-700 mb-1">Developer</label>
+              <input
+                type="text"
+                id="developer"
                 name="developer"
                 value={formData.developer}
                 onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                placeholder="Enter developer name"
               />
             </div>
           </div>
@@ -412,78 +380,14 @@ export default function ProjectForm({ params }) {
           
           {/* Drag and Drop Zone */}
           <div
-            className={`border-2 border-dashed rounded-lg p-8 text-center mb-6 transition-colors ${
-              dragActive 
-                ? 'border-blue-500 bg-blue-50' 
-                : 'border-gray-300 hover:border-gray-400'
-            }`}
+            className={`border-2 border-dashed rounded-lg p-8 text-center mb-6 transition-colors ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
             onDrop={handleDrop}
           >
-            <div className="space-y-4">
-              <div className="text-4xl text-gray-400">📷</div>
-              <div>
-                <p className="text-lg font-medium text-gray-700">
-                  Drag and drop images here
-                </p>
-                <p className="text-sm text-gray-500">
-                  or click to browse files
-                </p>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleFileInput}
-                  className="hidden"
-                  id="file-input"
-                />
-                <label
-                  htmlFor="file-input"
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md cursor-pointer"
-                >
-                  Browse Files
-                </label>
-                
-                <span className="text-gray-400">or</span>
-                
-                <div className="flex gap-2">
-                  <input
-                    type="url"
-                    value={newImageUrl}
-                    onChange={(e) => setNewImageUrl(e.target.value)}
-                    placeholder="Enter image URL"
-                    className="px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={addImage}
-                    disabled={imagesLoading || !newImageUrl.trim()}
-                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-md disabled:opacity-50"
-                  >
-                    Add URL
-                  </button>
-                </div>
-              </div>
-              
-              <p className="text-xs text-gray-500">
-                Supported formats: JPG, PNG, GIF, WebP • Maximum size: 5MB per file
-              </p>
-            </div>
+            {/* Drag and Drop UI */}
           </div>
-
-          {imagesLoading && (
-            <div className="text-center py-4">
-              <div className="inline-flex items-center gap-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                <span>Uploading images...</span>
-              </div>
-            </div>
-          )}
 
           {/* Images Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -508,70 +412,30 @@ export default function ProjectForm({ params }) {
                   </button>
                 </div>
                 <div className="p-2 bg-gray-50">
-                  <div className="flex items-center gap-2">
-                    {image.isLocal && <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Local</span>}
-                    {image.url && !image.isLocal && <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">URL</span>}
-                  </div>
-                  <p className="text-xs text-gray-600 truncate mt-1">
-                    {image.file ? image.file.name : image.url}
-                  </p>
+                  {/* Label for image status */}
                 </div>
               </div>
             ))}
           </div>
 
-          {images.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              No images added yet. Add your first image above!
-            </div>
-          )}
-
-          {/* Sample URLs */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <h3 className="font-medium mb-2">Sample Image URLs:</h3>
-            <div className="space-y-1 text-sm">
-              <button
-                type="button"
-                onClick={() => setNewImageUrl('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800')}
-                className="block text-blue-500 hover:text-blue-700"
-              >
-                Villa exterior sample
-              </button>
-              <button
-                type="button"
-                onClick={() => setNewImageUrl('https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800')}
-                className="block text-blue-500 hover:text-blue-700"
-              >
-                Modern apartment sample
-              </button>
-              <button
-                type="button"
-                onClick={() => setNewImageUrl('https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800')}
-                className="block text-blue-500 hover:text-blue-700"
-              >
-                Luxury interior sample
-              </button>
-            </div>
+          {/* Submit Buttons */}
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md disabled:opacity-50"
+            >
+              {loading ? (isEdit ? 'Updating...' : 'Creating...') : (isEdit ? 'Update Project' : 'Create Project')}
+            </button>
+            
+            <button
+              type="button"
+              onClick={() => router.push('/admin')}
+              className="border-2 border-red-500 hover:bg-red-500 text-red-500 hover:text-white px-6 py-2 rounded-md"
+            >
+              Cancel
+            </button>
           </div>
-        </div>
-
-        {/* Submit Buttons */}
-        <div className="flex gap-4">
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md disabled:opacity-50"
-          >
-            {loading ? (isEdit ? 'Updating...' : 'Creating...') : (isEdit ? 'Update Project' : 'Create Project')}
-          </button>
-          
-          <button
-            type="button"
-            onClick={() => router.push('/admin')}
-            className="border-2 border-red-500 hover:bg-red-500 text-red-500 hover:text-white px-6 py-2 rounded-md"
-          >
-            Cancel
-          </button>
         </div>
       </form>
     </div>
