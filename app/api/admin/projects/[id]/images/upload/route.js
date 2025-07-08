@@ -1,9 +1,7 @@
-import { NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { put } from '@vercel/blob';
 import { prisma } from '@/app/lib/prisma';
+import { NextResponse } from 'next/server';
 
-// ✅ Ensure this runs in Node.js (not Edge Runtime)
 export const runtime = 'nodejs';
 
 export async function POST(request, { params }) {
@@ -15,21 +13,11 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'No file received' }, { status: 400 });
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const blob = await put(file.name, file, {
+      access: 'public',
+    });
 
-    const timestamp = Date.now();
-    const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const filename = `${timestamp}_${originalName}`;
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'projects');
-
-    // ✅ Make sure directory exists
-    await mkdir(uploadDir, { recursive: true });
-
-    const filepath = path.join(uploadDir, filename);
-    await writeFile(filepath, buffer);
-
-    const imageUrl = `/uploads/projects/${filename}`;
+    const imageUrl = blob.url;
 
     const newImage = await prisma.image.create({
       data: {
