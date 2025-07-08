@@ -17,14 +17,16 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <>
+      <html lang="en" suppressHydrationWarning={true} />
       <body
         className={`${playfair.variable} antialiased min-h-screen flex flex-col`}
+        suppressHydrationWarning={true}
       >
-        <Nav/>
+        <Nav />
         {children}
-        <Footer/>
+        <Footer />
       </body>
-    </html>
+    </>
   );
 }
