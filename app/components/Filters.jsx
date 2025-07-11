@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
+import { areas, companies } from "../lib/areas";
 
 const Filters = ({ properties = [], onFilteredResults }) => {
   const [filters, setFilters] = useState({
@@ -122,7 +123,7 @@ const Filters = ({ properties = [], onFilteredResults }) => {
   };
 
   return (
-    <div className="p-4 rounded-lg shadow-sm border">
+    <div className="p-4 rounded-lg shadow-sm border bg-white">
       <div className="flex flex-wrap gap-4 w-full items-center">
         {/* Property Type */}
         <select
@@ -136,8 +137,6 @@ const Filters = ({ properties = [], onFilteredResults }) => {
           <option value="townhouse">Townhouse</option>
           <option value="penthouse">Penthouse</option>
           <option value="studio">Studio</option>
-          <option value="duplex">Duplex</option>
-          <option value="loft">Loft</option>
         </select>
 
         {/* Location */}
@@ -146,42 +145,20 @@ const Filters = ({ properties = [], onFilteredResults }) => {
           value={filters.area}
           onChange={(e) => handleFilterChange("area", e.target.value)}
         >
-          <option value="">Location</option>
-          <option value="downtown">Downtown Dubai</option>
-          <option value="marina">Dubai Marina</option>
-          <option value="jbr">JBR (Jumeirah Beach Residence)</option>
-          <option value="business-bay">Business Bay</option>
-          <option value="jlt">JLT (Jumeirah Lake Towers)</option>
-          <option value="difc">DIFC</option>
-          <option value="palm-jumeirah">Palm Jumeirah</option>
-          <option value="dubai-hills">Dubai Hills Estate</option>
-          <option value="city-walk">City Walk</option>
-          <option value="mirdif">Mirdif</option>
-          <option value="jumeirah">Jumeirah</option>
-          <option value="bur-dubai">Bur Dubai</option>
-          <option value="deira">Deira</option>
-          <option value="arabian-ranches">Arabian Ranches</option>
-          <option value="motor-city">Motor City</option>
-          <option value="sports-city">Sports City</option>
+          {areas.map(area => (
+            <option key={area.value} value={area.value}>{area.label}</option>
+          ))}
         </select>
 
-        {/* Developer/Company */}
-        <select
-          className="border-2 border-foreground px-3 py-2 rounded-lg min-w-36"
+        {/* Developers */}
+
+        <select name="developers" id="developers"
+        className="border-2 border-foreground px-3 py-2 rounded-lg min-w-40"
           value={filters.developer}
-          onChange={(e) => handleFilterChange("developer", e.target.value)}
-        >
-          <option value="">Developer</option>
-          <option value="emaar">Emaar</option>
-          <option value="damac">DAMAC</option>
-          <option value="nakheel">Nakheel</option>
-          <option value="dubai-properties">Dubai Properties</option>
-          <option value="meraas">Meraas</option>
-          <option value="sobha">Sobha Realty</option>
-          <option value="omniyat">Omniyat</option>
-          <option value="dubai-holding">Dubai Holding</option>
-          <option value="danube">Danube Properties</option>
-          <option value="azizi">Azizi Developments</option>
+          onChange={(e) => handleFilterChange("developer", e.target.value)}>
+            {companies.map((dev => (
+              <option key={dev.value} value={dev.value}>{dev.label}</option>
+            )))}
         </select>
 
         {/* Bedrooms */}

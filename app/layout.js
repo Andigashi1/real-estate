@@ -1,11 +1,12 @@
-import { Playfair_Display } from "next/font/google";
+import { Kumbh_Sans } from "next/font/google";
 import "./globals.css";
 import Nav from "./components/ui/Nav";
 import Footer from "./components/ui/Footer";
 
-const playfair = Playfair_Display({
+const kumbh = Kumbh_Sans({
   variable: "--font-geist",
   subsets: ["latin"],
+  weight: ["400"], 
 });
 
 
@@ -20,7 +21,7 @@ export default function RootLayout({ children }) {
     <>
       <html lang="en" suppressHydrationWarning={true} />
       <body
-        className={`${playfair.variable} antialiased min-h-screen flex flex-col`}
+        className={`${kumbh.variable} antialiased min-h-screen flex flex-col`}
         suppressHydrationWarning={true}
       >
         <Nav />

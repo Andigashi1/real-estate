@@ -1,6 +1,6 @@
 const Talkbtn = () => {
-  const number = "+38348115665";
-  const message = "Hey i would like to get in touch.";
+  const number = "+971585661306";
+  const message = "Pershendetje jam i interesuar.";
   const encodedMessage = encodeURIComponent(message);
 
   return (

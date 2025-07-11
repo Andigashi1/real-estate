@@ -45,14 +45,6 @@ const Projects = () => {
         </div>
       </div>
 
-      <div className="flex justify-center">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-background w-64 h-80"></div>
-          <div className="bg-background w-64 h-80"></div>
-          <div className="bg-background w-64 h-80"></div>
-          <div className="bg-background w-64 h-80"></div>
-        </div>
-      </div>
       <Link href="/projects" passHref>
         <p
           className="px-4 py-2 bg-button border-3 border-button hover:bg-transparent hover:text-button text-background font-bold uppercase cursor-pointer max-w-[15rem] mx-auto"

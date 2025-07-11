@@ -59,6 +59,11 @@ export async function DELETE(req, { params }) {
   }
 
   try {
+    // Delete related images first to avoid foreign key constraint violation
+    await prisma.image.deleteMany({
+      where: { projectId: id },
+    });
+
     await prisma.project.delete({
       where: { id },
     });

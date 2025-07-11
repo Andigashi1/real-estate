@@ -48,9 +48,15 @@ const Nav = () => {
           )}
         </div>
         <div className="hidden lg:flex gap-6 items-center">
-          <Instagram />
-          <Facebook />
-          <Linkedin />
+          <a href="https://www.instagram.com/dubaibyflamur/" aria-label="instagram" target="_blank" rel="noopener noreferrer">
+            <Instagram />
+          </a>
+          <a href="https://www.facebook.com/dubaibyflamur/" aria-label="facebook" target="_blank" rel="noopener noreferrer">
+            <Facebook />
+          </a>
+          <a href="https://www.linkedin.com/dubaibyflamur/" aria-label="linkedin" target="_blank" rel="noopener noreferrer">
+            <Linkedin />
+          </a>
           <Talkbtn/>
         </div>
         {menuOpen && (
@@ -61,9 +67,15 @@ const Nav = () => {
               <Link href='/contact' onClick={() => setMenuOpen(false)}>Contact</Link>
             </ul>
             <div className="flex gap-6 mb-8">
-              <Instagram color="white" />
-              <Facebook color="white" />
-              <Linkedin color="white" />
+              <a href="https://www.instagram.com/dubaibyflamur/" aria-label="instagram" target="_blank" rel="noopener noreferrer">
+            <Instagram color="white"/>
+          </a>
+          <a href="https://www.facebook.com/dubaibyflamur/" aria-label="facebook" target="_blank" rel="noopener noreferrer">
+            <Facebook color="white"/>
+          </a>
+          <a href="https://www.linkedin.com/dubaibyflamur/" aria-label="linkedin" target="_blank" rel="noopener noreferrer">
+            <Linkedin color="white"/>
+          </a>
             </div>
             <button className="px-4 py-2 bg-button border-3 border-button hover:bg-background hover:text-button text-background font-bold uppercase cursor-pointer">
               Let's talk

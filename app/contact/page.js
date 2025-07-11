@@ -1,9 +1,9 @@
 import { Facebook, Instagram, Mail, Music2 } from "lucide-react";
 
 const socials = [
-  { icon: <Instagram size={32} />, label: "Instagram", text: "dubaibyflamur", href: "#" },
-  { icon: <Facebook size={32} />, label: "Facebook", text: "facebook", href: "#" },
-  { icon: <Music2 size={32} />, label: "Music", text: "music", href: "#" },
+  { icon: <Instagram size={32} />, label: "Instagram", text: "dubaibyflamur", href: "https://www.instagram.com/dubaibyflamur/" },
+  { icon: <Facebook size={32} />, label: "Facebook", text: "facebook", href: "https://www.facebook.com/dubaibyflamur/" },
+  { icon: <Music2 size={32} />, label: "Tiktok", text: "Tiktok", href: "https://www.tiktok.com/@dubaibyflamur/" },
   { icon: <Mail size={32} />, label: "Email", text: "mail", href: "#" },
 ];
 
