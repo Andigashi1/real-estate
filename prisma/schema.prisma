@@ -11,7 +11,7 @@ model Project {
   id                  Int         @id @default(autoincrement())
   title               String
   slug                String      @unique
-  description         String?
+  description         String?     @db.Text
   minPrice            Float       // ✅ Must exist
   maxPrice            Float
   minArea             Float

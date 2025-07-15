@@ -53,52 +53,46 @@ export default function ProjectDetails({ params }) {
       </div>
 
       {/* Project Info */}
-      <div className="grid grid-cols-2 gap-4 mt-6 text-sm md:text-base bg-white rounded-lg px-8 py-10">
-        <p>
-          <strong>Location:</strong> {project.location}
-        </p>
-        <p>
-          <strong>Type:</strong> {project.type}
-        </p>
-        <p>
-          <strong>Developer:</strong> {project.developer}
-        </p>
-
-        <p>
-          <strong>Price:</strong> AED{" "}
-          {project.unitTypes?.length
-            ? `${Math.min(
-                ...project.unitTypes.map((u) => u.minPrice)
-              )} - ${Math.max(...project.unitTypes.map((u) => u.maxPrice))}`
-            : "N/A"}
-        </p>
-
-        <p>
-          <strong>Area:</strong>{" "}
-          {project.unitTypes?.length
-            ? `${Math.min(
-                ...project.unitTypes.map((u) => u.minArea)
-              )} - ${Math.max(...project.unitTypes.map((u) => u.maxArea))} m²`
-            : "N/A"}
-        </p>
-
-        <p>
-          <strong>Bedrooms:</strong>{" "}
-          {project.unitTypes?.length
-            ? (() => {
-                const bedrooms = project.unitTypes.map((u) => u.bedrooms);
-                const min = Math.min(...bedrooms);
-                const max = Math.max(...bedrooms);
-                return min === max
-                  ? min === 0
-                    ? "Studio"
-                    : `${min} BR`
-                  : `${min} - ${max} BR`;
-              })()
-            : "N/A"}
-        </p>
+      <div className="grid grid-cols-2 gap-4 mt-6 text-sm md:text-base bg-white rounded-lg px-8 py-10 shadow-md">
+        <p><strong>Location:</strong> {project.location}</p>
+        <p><strong>Type:</strong> {project.type}</p>
+        <p><strong>Developer:</strong> {project.developer}</p>
+        <p><strong>Furnished:</strong> {project.furnished}</p>
+        <p><strong>Price Range:</strong> AED {project.minPrice.toLocaleString()} – {project.maxPrice.toLocaleString()}</p>
+        <p><strong>Area Range:</strong> {project.minArea} – {project.maxArea} m²</p>
+        <p><strong>New Launch:</strong> {project.newLaunch ? "Yes" : "No"}</p>
       </div>
-      <p></p>
+
+      {/* Unit Types */}
+      {project.unitTypes?.length > 0 && (
+        <div className="bg-white rounded-lg px-8 py-10 shadow-md space-y-4">
+          <h2 className="text-xl font-semibold mb-4">Unit Types</h2>
+
+          {project.unitTypes.map((unit) => (
+            <div
+              key={unit.id}
+              className="border-b last:border-b-0 pb-4 mb-4 last:pb-0 last:mb-0"
+            >
+              <p className="text-gray-700 text-sm md:text-base">
+                <strong>Bedrooms:</strong>{" "}
+                {unit.bedrooms === 0 ? "Studio" : `${unit.bedrooms} BR`}
+              </p>
+              <p className="text-gray-700 text-sm md:text-base">
+                <strong>Price Range:</strong>{" "}
+                AED {unit.minPrice.toLocaleString()} – {unit.maxPrice.toLocaleString()}
+              </p>
+              <p className="text-gray-700 text-sm md:text-base">
+                <strong>Area Range:</strong> {unit.minArea} – {unit.maxArea} m²
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Description */}
+      {project.description && (
+        <p className="text-md text-muted-foreground">{project.description}</p>
+      )}
     </div>
   );
 }
