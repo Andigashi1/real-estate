@@ -16,13 +16,24 @@ export default function ProjectForm({ params }) {
     title: "",
     slug: "",
     description: "",
-    price: "",
     location: "",
-    area: "",
-    bedrooms: "",
     type: "",
     developer: "",
+    furnished: "",
+    newLaunch: false,
   });
+
+  // Unit types state - array of bedroom configurations with min/max values
+  const [unitTypes, setUnitTypes] = useState([
+    { 
+      bedrooms: 0, 
+      minPrice: "", 
+      maxPrice: "", 
+      minArea: "", 
+      maxArea: "", 
+      name: "Studio" 
+    },
+  ]);
 
   useEffect(() => {
     if (params?.id) {
@@ -41,19 +52,38 @@ export default function ProjectForm({ params }) {
         title: project.title || "",
         slug: project.slug || "",
         description: project.description || "",
-        price: project.price?.toString() || "",
         location: project.location || "",
-        area: project.area?.toString() || "",
-        bedrooms: project.bedrooms?.toString() || "",
         type: project.type || "",
         developer: project.developer || "",
+        furnished: project.furnished || "",
+        newLaunch: project.newLaunch || false,
       });
+
+      // Set unit types from project data
+      if (project.unitTypes && project.unitTypes.length > 0) {
+        setUnitTypes(
+          project.unitTypes.map((unit) => ({
+            bedrooms: unit.bedrooms,
+            minPrice: unit.minPrice?.toString() || "",
+            maxPrice: unit.maxPrice?.toString() || "",
+            minArea: unit.minArea?.toString() || "",
+            maxArea: unit.maxArea?.toString() || "",
+            name: unit.name || getDefaultUnitName(unit.bedrooms),
+          }))
+        );
+      }
 
       setImages(project.images || []);
     } catch (error) {
       console.error(error);
       alert("Failed to load project");
     }
+  };
+
+  const getDefaultUnitName = (bedrooms) => {
+    if (bedrooms === 0) return "Studio";
+    if (bedrooms === 1) return "1 Bedroom";
+    return `${bedrooms} Bedrooms`;
   };
 
   const handleChange = (e) => {
@@ -70,6 +100,40 @@ export default function ProjectForm({ params }) {
           }
         : {}),
     }));
+  };
+
+  const handleUnitTypeChange = (index, field, value) => {
+    const updatedUnits = [...unitTypes];
+    updatedUnits[index] = {
+      ...updatedUnits[index],
+      [field]: value,
+      // Auto-update name if bedroom count changes
+      ...(field === "bedrooms"
+        ? { name: getDefaultUnitName(parseInt(value) || 0) }
+        : {}),
+    };
+    setUnitTypes(updatedUnits);
+  };
+
+  const addUnitType = () => {
+    const nextBedrooms = Math.max(...unitTypes.map((u) => u.bedrooms)) + 1;
+    setUnitTypes([
+      ...unitTypes,
+      {
+        bedrooms: nextBedrooms <= 7 ? nextBedrooms : 1,
+        minPrice: "",
+        maxPrice: "",
+        minArea: "",
+        maxArea: "",
+        name: getDefaultUnitName(nextBedrooms <= 7 ? nextBedrooms : 1),
+      },
+    ]);
+  };
+
+  const removeUnitType = (index) => {
+    if (unitTypes.length > 1) {
+      setUnitTypes(unitTypes.filter((_, i) => i !== index));
+    }
   };
 
   const addImage = async (e) => {
@@ -150,7 +214,7 @@ export default function ProjectForm({ params }) {
 
         const previewUrl = URL.createObjectURL(file);
         const tempId = Date.now() + Math.random();
-        
+
         // Add to images array immediately for preview
         setImages((prev) => [
           ...prev,
@@ -167,7 +231,7 @@ export default function ProjectForm({ params }) {
         if (isEdit) {
           const formData = new FormData();
           formData.append("image", file);
-          
+
           try {
             const res = await fetch(
               `/api/admin/projects/${params.id}/images/upload`,
@@ -180,22 +244,20 @@ export default function ProjectForm({ params }) {
             if (res.ok) {
               const newImage = await res.json();
               // Replace the temporary image with the uploaded one
-              setImages((prev) => 
-                prev.map(img => 
-                  img.id === tempId 
-                    ? { ...newImage, isUploaded: true }
-                    : img
+              setImages((prev) =>
+                prev.map((img) =>
+                  img.id === tempId ? { ...newImage, isUploaded: true } : img
                 )
               );
             } else {
               // Remove the failed upload from images
-              setImages((prev) => prev.filter(img => img.id !== tempId));
+              setImages((prev) => prev.filter((img) => img.id !== tempId));
               console.error(`Failed to upload ${file.name}`);
               alert(`Failed to upload ${file.name}`);
             }
           } catch (uploadError) {
             console.error(`Upload error for ${file.name}:`, uploadError);
-            setImages((prev) => prev.filter(img => img.id !== tempId));
+            setImages((prev) => prev.filter((img) => img.id !== tempId));
             alert(`Error uploading ${file.name}`);
           }
         }
@@ -240,12 +302,39 @@ export default function ProjectForm({ params }) {
         return;
       }
 
-      // Prepare project data
+      // Validate unit types
+      const validUnitTypes = unitTypes.filter(
+        (unit) => unit.minPrice && unit.maxPrice && unit.minArea && unit.maxArea && unit.bedrooms !== ""
+      );
+
+      if (validUnitTypes.length === 0) {
+        alert("At least one unit type with min/max price and area is required");
+        return;
+      }
+
+      // Validate that maxPrice >= minPrice and maxArea >= minArea
+      for (const unit of validUnitTypes) {
+        if (parseFloat(unit.maxPrice) < parseFloat(unit.minPrice)) {
+          alert("Max price must be greater than or equal to min price");
+          return;
+        }
+        if (parseFloat(unit.maxArea) < parseFloat(unit.minArea)) {
+          alert("Max area must be greater than or equal to min area");
+          return;
+        }
+      }
+
+      // Prepare project data with unit types
       const projectData = {
         ...formData,
-        price: formData.price ? parseFloat(formData.price) : null,
-        area: formData.area ? parseFloat(formData.area) : null,
-        bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : null,
+        unitTypes: validUnitTypes.map((unit) => ({
+          bedrooms: parseInt(unit.bedrooms) || 0,
+          minPrice: parseFloat(unit.minPrice),
+          maxPrice: parseFloat(unit.maxPrice),
+          minArea: parseFloat(unit.minArea),
+          maxArea: parseFloat(unit.maxArea),
+          name: unit.name || getDefaultUnitName(parseInt(unit.bedrooms) || 0),
+        })),
       };
 
       const url = isEdit
@@ -262,7 +351,7 @@ export default function ProjectForm({ params }) {
       if (!response.ok) {
         const contentType = response.headers.get("content-type");
         let errorMessage = "Unknown error";
-        
+
         if (contentType && contentType.includes("application/json")) {
           try {
             const errorJson = await response.json();
@@ -273,8 +362,10 @@ export default function ProjectForm({ params }) {
         } else {
           errorMessage = await response.text();
         }
-        
-        alert(`Failed to ${isEdit ? "update" : "create"} project: ${errorMessage}`);
+
+        alert(
+          `Failed to ${isEdit ? "update" : "create"} project: ${errorMessage}`
+        );
         return;
       }
 
@@ -283,11 +374,11 @@ export default function ProjectForm({ params }) {
       // Handle image uploads for new projects
       if (!isEdit && project && images.length > 0) {
         const imageUploadPromises = images
-          .filter(img => img.isLocal && img.file)
+          .filter((img) => img.isLocal && img.file)
           .map(async (img) => {
             const formData = new FormData();
             formData.append("image", img.file);
-            
+
             try {
               const uploadResponse = await fetch(
                 `/api/admin/projects/${project.id}/images/upload`,
@@ -296,12 +387,12 @@ export default function ProjectForm({ params }) {
                   body: formData,
                 }
               );
-              
+
               if (!uploadResponse.ok) {
                 console.error(`Failed to upload image ${img.file.name}`);
                 return { success: false, filename: img.file.name };
               }
-              
+
               return { success: true, filename: img.file.name };
             } catch (uploadError) {
               console.error(`Upload error for ${img.file.name}:`, uploadError);
@@ -310,26 +401,35 @@ export default function ProjectForm({ params }) {
           });
 
         const uploadResults = await Promise.all(imageUploadPromises);
-        const failedUploads = uploadResults.filter(result => !result.success);
-        
+        const failedUploads = uploadResults.filter((result) => !result.success);
+
         if (failedUploads.length > 0) {
-          const failedFiles = failedUploads.map(result => result.filename).join(", ");
+          const failedFiles = failedUploads
+            .map((result) => result.filename)
+            .join(", ");
           alert(`Project created but failed to upload images: ${failedFiles}`);
         }
       }
 
       // Handle URL-based images for new projects
-      if (!isEdit && project && images.some(img => img.isNew && !img.isLocal)) {
-        const urlImages = images.filter(img => img.isNew && !img.isLocal);
-        
+      if (
+        !isEdit &&
+        project &&
+        images.some((img) => img.isNew && !img.isLocal)
+      ) {
+        const urlImages = images.filter((img) => img.isNew && !img.isLocal);
+
         for (const img of urlImages) {
           try {
-            const response = await fetch(`/api/admin/projects/${project.id}/images`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ url: img.url }),
-            });
-            
+            const response = await fetch(
+              `/api/admin/projects/${project.id}/images`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url: img.url }),
+              }
+            );
+
             if (!response.ok) {
               console.error(`Failed to add image URL: ${img.url}`);
             }
@@ -342,7 +442,9 @@ export default function ProjectForm({ params }) {
       router.push("/admin");
     } catch (error) {
       console.error("Submit error:", error);
-      alert(`Error ${isEdit ? "updating" : "creating"} project: ${error.message}`);
+      alert(
+        `Error ${isEdit ? "updating" : "creating"} project: ${error.message}`
+      );
     } finally {
       setLoading(false);
     }
@@ -423,25 +525,6 @@ export default function ProjectForm({ params }) {
             </div>
             <div>
               <label
-                htmlFor="price"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Price (AED)
-              </label>
-              <input
-                type="number"
-                id="price"
-                name="price"
-                value={formData.price}
-                onChange={handleChange}
-                min="0"
-                step="0.01"
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter price"
-              />
-            </div>
-            <div>
-              <label
                 htmlFor="location"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
@@ -461,44 +544,6 @@ export default function ProjectForm({ params }) {
                   </option>
                 ))}
               </select>
-            </div>
-            <div>
-              <label
-                htmlFor="area"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Area (m²)
-              </label>
-              <input
-                type="number"
-                id="area"
-                name="area"
-                value={formData.area}
-                onChange={handleChange}
-                min="0"
-                step="0.01"
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter area"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="bedrooms"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Bedrooms
-              </label>
-              <input
-                type="number"
-                id="bedrooms"
-                name="bedrooms"
-                value={formData.bedrooms}
-                onChange={handleChange}
-                min="0"
-                step="1"
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter number of bedrooms"
-              />
             </div>
             <div>
               <label
@@ -544,6 +589,182 @@ export default function ProjectForm({ params }) {
                 ))}
               </select>
             </div>
+            <div>
+              <label
+                htmlFor="furnished"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Furnished
+              </label>
+              <select
+                name="furnished"
+                id="furnished"
+                value={formData.furnished}
+                onChange={handleChange}
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="not-furnished">Not Furnished</option>
+                <option value="semi">Semi Furnished</option>
+                <option value="fully">Fully Furnished</option>
+                <option value="all">All Furnishings</option>
+              </select>
+            </div>
+            <div>
+              <label
+                htmlFor="newLaunch"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                New Launch
+              </label>
+              <input
+                type="checkbox"
+                className="w-5 h-5"
+                checked={formData.newLaunch}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    newLaunch: e.target.checked,
+                  }))
+                }
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Unit Types Section */}
+        <div className="bg-white p-6 rounded-lg shadow">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Unit Types & Pricing</h2>
+            <button
+              type="button"
+              onClick={addUnitType}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm"
+            >
+              + Add Unit Type
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {unitTypes.map((unit, index) => (
+              <div
+                key={index}
+                className="border border-gray-200 rounded-lg p-4"
+              >
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="font-medium text-gray-900">
+                    Unit Type {index + 1}
+                  </h3>
+                  {unitTypes.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeUnitType(index)}
+                      className="text-red-600 hover:text-red-800 text-sm"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Bedrooms Select */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Bedrooms
+                    </label>
+                    <select
+                      value={unit.bedrooms}
+                      onChange={(e) =>
+                        handleUnitTypeChange(index, "bedrooms", e.target.value)
+                      }
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value={0}>Studio</option>
+                      {[1, 2, 3, 4, 5, 6, 7].map((num) => (
+                        <option key={num} value={num}>
+                          {num} Bedroom{num > 1 ? "s" : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Min Price Input */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Min Price (AED) *
+                    </label>
+                    <input
+                      type="number"
+                      value={unit.minPrice}
+                      onChange={(e) =>
+                        handleUnitTypeChange(index, "minPrice", e.target.value)
+                      }
+                      min="0"
+                      step="0.01"
+                      required
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter minimum price"
+                    />
+                  </div>
+
+                  {/* Max Price Input */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Max Price (AED) *
+                    </label>
+                    <input
+                      type="number"
+                      value={unit.maxPrice}
+                      onChange={(e) =>
+                        handleUnitTypeChange(index, "maxPrice", e.target.value)
+                      }
+                      min="0"
+                      step="0.01"
+                      required
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter maximum price"
+                    />
+                  </div>
+
+                  {/* Min Area Input */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Min Area (m²) *
+                    </label>
+                    <input
+                      type="number"
+                      value={unit.minArea}
+                      onChange={(e) =>
+                        handleUnitTypeChange(index, "minArea", e.target.value)
+                      }
+                      min="0"
+                      step="0.01"
+                      required
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter minimum area"
+                    />
+                  </div>
+
+                  {/* Max Area Input */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Max Area (m²) *
+                    </label>
+                    <input
+                      type="number"
+                      value={unit.maxArea}
+                      onChange={(e) =>
+                        handleUnitTypeChange(index, "maxArea", e.target.value)
+                      }
+                      min="0"
+                      step="0.01"
+                      required
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Enter maximum area"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -587,13 +808,27 @@ export default function ProjectForm({ params }) {
           >
             <div className="space-y-2">
               <div className="text-gray-500">
-                <svg className="mx-auto h-12 w-12" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <svg
+                  className="mx-auto h-12 w-12"
+                  stroke="currentColor"
+                  fill="none"
+                  viewBox="0 0 48 48"
+                >
+                  <path
+                    d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </div>
               <div className="text-gray-600">
-                <p className="text-lg font-medium">Drop images here or click to browse</p>
-                <p className="text-sm">Supports: JPG, PNG, GIF (max 5MB each)</p>
+                <p className="text-lg font-medium">
+                  Drop images here or click to browse
+                </p>
+                <p className="text-sm">
+                  Supports: JPG, PNG, GIF (max 5MB each)
+                </p>
               </div>
               <input
                 type="file"
@@ -638,54 +873,37 @@ export default function ProjectForm({ params }) {
                     }}
                   />
                   <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      type="button"
-                      onClick={() => deleteImage(image.id, image.isNew)}
-                      className="bg-red-500 hover:bg-red-600 text-white p-1 rounded-full text-xs w-6 h-6 flex items-center justify-center"
-                      title="Delete image"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                  <div className="p-2 bg-gray-50 text-xs text-gray-600">
-                    {image.isLocal ? "Local file" : image.isNew ? "New URL" : "Uploaded"}
-                    {image.isUploaded && " ✓"}
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => deleteImage(image.id, image.isNew)}
+                    className="bg-red-600 text-white p-1 rounded-full hover:bg-red-700"
+                    title="Delete"
+                  >
+                    ✕
+                  </button>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
-        {/* Submit Buttons */}
-        <div className="flex gap-4">
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            {loading && (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-            )}
-            {loading
-              ? isEdit
-                ? "Updating..."
-                : "Creating..."
-              : isEdit
-              ? "Update Project"
-              : "Create Project"}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => router.push("/admin")}
-            disabled={loading}
-            className="border-2 border-gray-300 hover:bg-gray-50 text-gray-700 px-6 py-2 rounded-md disabled:opacity-50"
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
-  );
-}
+      {/* Submit Button */}
+      <div className="text-right">
+        <button
+          type="submit"
+          disabled={loading}
+          className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 disabled:opacity-50"
+        >
+          {loading
+            ? isEdit
+              ? "Updating..."
+              : "Creating..."
+            : isEdit
+            ? "Update Project"
+            : "Create Project"}
+        </button>
+      </div>
+    </form>
+  </div>
+  )}

@@ -8,19 +8,39 @@ datasource db {
 }
 
 model Project {
-  id          Int      @id @default(autoincrement())
-  title       String
-  slug        String   @unique
-  description String? @db.Text
-  price       Float
-  location    String
-  area        Float
-  bedrooms    Int
-  type        String
-  developer   String
-  createdAt   DateTime @default(now())
-  images      Image[]
+  id                  Int         @id @default(autoincrement())
+  title               String
+  slug                String      @unique
+  description         String?
+  minPrice            Float       // ✅ Must exist
+  maxPrice            Float
+  minArea             Float
+  maxArea             Float
+  location            String?
+  type                String?
+  developer           String?
+  furnished           String
+  newLaunch           Boolean     @default(false)
+  unitTypes           UnitType[]
+  images              Image[]
+  createdAt           DateTime @default(now())
+  cheapestPrice       Float?      // optional if you use it
+  mostExpensivePrice  Float?      // optional if you use it
 }
+
+
+model UnitType {
+  id          Int     @id @default(autoincrement())
+  bedrooms    Int
+  minPrice    Float
+  maxPrice    Float
+  price       Float?  // Optional price field
+  minArea     Float
+  maxArea     Float
+  projectId   Int
+  project     Project @relation(fields: [projectId], references: [id])
+}
+
 
 model Image {
   id        Int     @id @default(autoincrement())

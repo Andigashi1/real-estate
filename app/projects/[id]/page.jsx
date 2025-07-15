@@ -25,7 +25,6 @@ export default function ProjectDetails({ params }) {
   return (
     <div className="py-36 px-6 max-w-screen-lg mx-auto space-y-6">
       <h1 className="text-4xl font-bold text-center">{project.title}</h1>
-      
 
       {/* Main Image */}
       {mainImage && (
@@ -55,15 +54,51 @@ export default function ProjectDetails({ params }) {
 
       {/* Project Info */}
       <div className="grid grid-cols-2 gap-4 mt-6 text-sm md:text-base bg-white rounded-lg px-8 py-10">
-        <p><strong>Location:</strong> {project.location}</p>
-        <p><strong>Area:</strong> {project.area}</p>
-        <p><strong>Type:</strong> {project.type}</p>
-        <p><strong>Developer:</strong> {project.developer}</p>
-        <p><strong>Bedrooms:</strong> {project.bedrooms}</p>
-        <p><strong>Price:</strong> AED {project.price.toLocaleString()}</p>
-      </div>
+        <p>
+          <strong>Location:</strong> {project.location}
+        </p>
+        <p>
+          <strong>Type:</strong> {project.type}
+        </p>
+        <p>
+          <strong>Developer:</strong> {project.developer}
+        </p>
 
-      <p className="text-md text-muted-foreground">{project.description}</p>
+        <p>
+          <strong>Price:</strong> AED{" "}
+          {project.unitTypes?.length
+            ? `${Math.min(
+                ...project.unitTypes.map((u) => u.minPrice)
+              )} - ${Math.max(...project.unitTypes.map((u) => u.maxPrice))}`
+            : "N/A"}
+        </p>
+
+        <p>
+          <strong>Area:</strong>{" "}
+          {project.unitTypes?.length
+            ? `${Math.min(
+                ...project.unitTypes.map((u) => u.minArea)
+              )} - ${Math.max(...project.unitTypes.map((u) => u.maxArea))} m²`
+            : "N/A"}
+        </p>
+
+        <p>
+          <strong>Bedrooms:</strong>{" "}
+          {project.unitTypes?.length
+            ? (() => {
+                const bedrooms = project.unitTypes.map((u) => u.bedrooms);
+                const min = Math.min(...bedrooms);
+                const max = Math.max(...bedrooms);
+                return min === max
+                  ? min === 0
+                    ? "Studio"
+                    : `${min} BR`
+                  : `${min} - ${max} BR`;
+              })()
+            : "N/A"}
+        </p>
+      </div>
+      <p></p>
     </div>
   );
 }

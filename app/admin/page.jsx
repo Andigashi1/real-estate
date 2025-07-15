@@ -85,7 +85,7 @@ export default function AdminDashboard() {
                   {project.location}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  AED {project.price.toLocaleString()}
+                  AED {project.price}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {project.type}

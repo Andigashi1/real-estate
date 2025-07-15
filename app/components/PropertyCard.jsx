@@ -3,48 +3,55 @@ import { MapPin, Bed, Bath, Square, Eye } from 'lucide-react';
 
 const PropertyCard = ({ property }) => {
   const formatPrice = (price) => {
-    if (price >= 1000000) {
-      return `${(price / 1000000).toFixed(1)}M AED`;
-    } else if (price >= 1000) {
-      return `${(price / 1000).toFixed(0)}K AED`;
-    }
+    if (price >= 1_000_000) return `${(price / 1_000_000).toFixed(1)}M AED`;
+    if (price >= 1_000) return `${(price / 1_000).toFixed(0)}K AED`;
     return `${price} AED`;
   };
 
-  const getBedroomText = (bedrooms, type) => {
-    if (type?.toLowerCase() === 'studio' || bedrooms === 0) {
-      return 'Studio';
-    }
-    return `${bedrooms} BR`;
-  };
+  const imageUrl =
+    property.images?.[0]?.url || 'https://via.placeholder.com/300x200?text=No+Image+Available';
 
-  const imageUrl = property.images?.[0]?.url || 'https://via.placeholder.com/300x200?text=No+Image+Available';
+  // Extract unit types
+  const units = property.unitTypes || [];
+
+  const minPrice = Math.min(...units.map((u) => u.minPrice ?? Infinity));
+  const maxPrice = Math.max(...units.map((u) => u.maxPrice ?? 0));
+
+  const minArea = Math.min(...units.map((u) => u.minArea ?? Infinity));
+  const maxArea = Math.max(...units.map((u) => u.maxArea ?? 0));
+
+  const minBedrooms = Math.min(...units.map((u) => u.bedrooms ?? 0));
+  const maxBedrooms = Math.max(...units.map((u) => u.bedrooms ?? 0));
+
+  const bedroomLabel =
+    minBedrooms === maxBedrooms
+      ? minBedrooms === 0
+        ? 'Studio'
+        : `${minBedrooms} BR`
+      : `${minBedrooms}–${maxBedrooms} BR`;
 
   return (
     <Link href={`/projects/${property.id}`} className="group">
       <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden max-w-80 w-full mx-auto relative">
-        {/* Image Container */}
+        {/* Image */}
         <div className="relative h-48 overflow-hidden">
-          <img 
+          <img
             src={imageUrl}
             alt={property.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
 
-          {/* Property Type Badge */}
           <div className="absolute top-3 left-3">
             <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold uppercase">
               {property.type}
             </span>
           </div>
 
-          {/* Price Badge */}
           <div className="absolute top-3 right-3">
             <span className="bg-white text-gray-900 px-3 py-1 rounded-full text-sm font-bold shadow-md">
-              {formatPrice(property.price)}
+              {formatPrice(minPrice)} – {formatPrice(maxPrice)}
             </span>
           </div>
-        
         </div>
 
         {/* Content */}
@@ -61,22 +68,15 @@ const PropertyCard = ({ property }) => {
           <div className="flex items-center gap-4 mb-4 text-gray-600">
             <div className="flex items-center gap-1">
               <Bed className="w-4 h-4" />
-              <span className="text-sm">{getBedroomText(property.bedrooms, property.type)}</span>
+              <span className="text-sm">{bedroomLabel}</span>
             </div>
 
-            {property.bathrooms && (
-              <div className="flex items-center gap-1">
-                <Bath className="w-4 h-4" />
-                <span className="text-sm">{property.bathrooms} Bath</span>
-              </div>
-            )}
-
-            {property.area && (
-              <div className="flex items-center gap-1">
-                <Square className="w-4 h-4" />
-                <span className="text-sm">{property.area} m²</span>
-              </div>
-            )}
+            <div className="flex items-center gap-1">
+              <Square className="w-4 h-4" />
+              <span className="text-sm">
+                {minArea} – {maxArea} m²
+              </span>
+            </div>
           </div>
 
           {property.developer && (
