@@ -125,6 +125,7 @@ export const areas = [
   { value: "the-heights", label: "The Heights" },
   { value: "madinat-hind-4", label: "Madinat Hind 4" },
   { value: "bukadra", label: "Bukadra" },
+  { value: "dubai-hills-estate", label: "Dubai hills Estate"},
 
   // Industrial Areas
   { value: "national-industries-park", label: "National Industries Park" },

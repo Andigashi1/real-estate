@@ -1,15 +1,24 @@
-import Link from 'next/link';
-import { MapPin, Bed, Bath, Square, Eye } from 'lucide-react';
+import Link from "next/link";
+import { areas, companies } from "../lib/areas";
+import { MapPin, Bed, Bath, Square, Eye } from "lucide-react";
 
 const PropertyCard = ({ property }) => {
   const formatPrice = (price) => {
-    if (price >= 1_000_000) return `${(price / 1_000_000).toFixed(1)}M AED`;
-    if (price >= 1_000) return `${(price / 1_000).toFixed(0)}K AED`;
-    return `${price} AED`;
+    if (price >= 1_000_000) return `${(price / 1_000_000).toFixed(1)}M`;
+    if (price >= 1_000) return `${(price / 1_000).toFixed(0)}K`;
+    return `${price}`;
   };
 
   const imageUrl =
-    property.images?.[0]?.url || 'https://via.placeholder.com/300x200?text=No+Image+Available';
+    property.images?.[0]?.url ||
+    "https://via.placeholder.com/300x200?text=No+Image+Available";
+
+  const locationLabel =
+    areas.find((loc) => loc.value === property.location)?.label ||
+    property.location;
+  const companyLabel =
+    companies.find((company) => company.value === property.developer)?.label ||
+    property.developer;
 
   // Extract unit types
   const units = property.unitTypes || [];
@@ -26,13 +35,13 @@ const PropertyCard = ({ property }) => {
   const bedroomLabel =
     minBedrooms === maxBedrooms
       ? minBedrooms === 0
-        ? 'Studio'
+        ? "Studio"
         : `${minBedrooms} BR`
       : `${minBedrooms}–${maxBedrooms} BR`;
 
   return (
     <Link href={`/projects/${property.id}`} className="group">
-      <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden max-w-80 w-full mx-auto relative">
+      <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden max-w-80 h-full w-full mx-auto relative">
         {/* Image */}
         <div className="relative h-48 overflow-hidden">
           <img
@@ -49,9 +58,18 @@ const PropertyCard = ({ property }) => {
 
           <div className="absolute top-3 right-3">
             <span className="bg-white text-gray-900 px-3 py-1 rounded-full text-sm font-bold shadow-md">
-              {formatPrice(minPrice)} – {formatPrice(maxPrice)}
+              {formatPrice(minPrice)} {!property.newLaunch && <span>-</span>}{" "}
+              {!property.newLaunch && formatPrice(maxPrice)} AED
             </span>
           </div>
+
+          {property.newLaunch && (
+            <div className="absolute bottom-3 right-3">
+              <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold shadow-md">
+                NEW LAUNCH
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Content */}
@@ -62,7 +80,7 @@ const PropertyCard = ({ property }) => {
 
           <div className="flex items-center gap-1 text-gray-600 mb-3">
             <MapPin className="w-4 h-4" />
-            <span className="text-sm">{property.location}</span>
+            <span className="text-sm">{locationLabel}</span>
           </div>
 
           <div className="flex items-center gap-4 mb-4 text-gray-600">
@@ -81,8 +99,12 @@ const PropertyCard = ({ property }) => {
 
           {property.developer && (
             <div className="mb-4">
-              <span className="text-xs text-gray-500 uppercase tracking-wider">Developer</span>
-              <p className="text-sm font-medium text-gray-700">{property.developer}</p>
+              <span className="text-xs text-gray-500 uppercase tracking-wider">
+                Developer
+              </span>
+              <p className="text-sm font-medium text-gray-700">
+                {companyLabel}
+              </p>
             </div>
           )}
 
