@@ -1,5 +1,5 @@
 export const areas = [
-  { value: "", label: "Location" },
+  { value: "", label: "Lokacioni" },
 
   // Downtown & Central
   { value: "downtown", label: "Downtown Dubai" },
@@ -147,7 +147,7 @@ export const areas = [
 
 
 export const companies = [
-  { value: "", label: "Developer" },
+  { value: "", label: "Ndertuesi" },
   
   {value: "emaar", label: "Emaar Properties"},
   {value: "nakheel", label: "Nakheel Properties"},

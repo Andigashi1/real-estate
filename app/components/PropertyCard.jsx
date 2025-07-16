@@ -2,12 +2,23 @@ import Link from "next/link";
 import { areas, companies } from "../lib/areas";
 import { MapPin, Bed, Bath, Square, Eye } from "lucide-react";
 
+const typeColorMap = {
+  Villa: "bg-red-600",
+  Apartment: "bg-blue-600",
+  Townhouse: "bg-purple-600",
+  Penthouse: "bg-yellow-600",
+  Default: "bg-gray-600",
+};
+
 const PropertyCard = ({ property }) => {
   const formatPrice = (price) => {
     if (price >= 1_000_000) return `${(price / 1_000_000).toFixed(1)}M`;
     if (price >= 1_000) return `${(price / 1_000).toFixed(0)}K`;
     return `${price}`;
   };
+
+  const normalizedType = (property.type || "Default").charAt(0).toUpperCase() + (property.type || "Default").slice(1).toLowerCase();
+  const typeClass = typeColorMap[normalizedType] || typeColorMap.Default;
 
   const imageUrl =
     property.images?.[0]?.url ||
@@ -51,7 +62,9 @@ const PropertyCard = ({ property }) => {
           />
 
           <div className="absolute top-3 left-3">
-            <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold uppercase">
+            <span
+              className={`${typeClass} text-white px-3 py-1 rounded-full text-xs font-semibold uppercase`}
+            >
               {property.type}
             </span>
           </div>

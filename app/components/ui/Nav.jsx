@@ -26,8 +26,8 @@ const Nav = () => {
       <div className="relative flex items-center justify-between gap-10">
         <ul className="gap-10 hidden lg:flex uppercase">
           <Link href='/'>Home</Link>
-          <Link href='/projects'>Projects</Link>
-          <Link href='/contact'>Contact</Link>
+          <Link href='/projects'>Projektet</Link>
+          <Link href='/contact'>Kontaktet</Link>
         </ul>
         <h1 className={`${menuOpen ? 'text-white' : null} z-50 text-2xl lg:text-3xl lg:absolute left-1/2 lg:-translate-x-1/2 leading-7 text-center`}>
           Dubai By <br /> Flamur
@@ -63,8 +63,8 @@ const Nav = () => {
           <div className="inset-0 text-center bg-black/75 fixed top-0 left-0 w-full h-full z-40 flex flex-col items-center justify-center">
             <ul className="flex flex-col gap-10 text-2xl uppercase text-white mb-8">
               <Link href='/' onClick={() => setMenuOpen(false)}>Home</Link>
-              <Link href='/projects' onClick={() => setMenuOpen(false)}>Projects</Link>
-              <Link href='/contact' onClick={() => setMenuOpen(false)}>Contact</Link>
+              <Link href='/projects' onClick={() => setMenuOpen(false)}>Projektet</Link>
+              <Link href='/contact' onClick={() => setMenuOpen(false)}>Kontaktet</Link>
             </ul>
             <div className="flex gap-6 mb-8">
               <a href="https://www.instagram.com/dubaibyflamur/" aria-label="instagram" target="_blank" rel="noopener noreferrer">
@@ -78,7 +78,7 @@ const Nav = () => {
           </a>
             </div>
             <button className="px-4 py-2 bg-button border-3 border-button hover:bg-background hover:text-button text-background font-bold uppercase cursor-pointer">
-              Let's talk
+              Me kontakto
             </button>
           </div>
         )}

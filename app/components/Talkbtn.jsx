@@ -10,7 +10,7 @@ const Talkbtn = () => {
       rel="noopener noreferrer"
       className="px-4 py-2 bg-button border-3 border-button hover:bg-transparent hover:text-button text-background font-bold uppercase cursor-pointer"
     >
-      Let's talk
+      Me Kontakto
     </a>
   );
 };

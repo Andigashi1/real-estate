@@ -43,14 +43,14 @@ export default function ProjectsPage() {
 
   return (
     <div className="min-h-screen flex flex-col pt-36 items-center space-y-6 mx-8 mb-20">
-      <h1 className="text-4xl font-bold">Explore our options</h1>
+      <h1 className="text-4xl font-bold">Eksploro Opsionet</h1>
       <Filters 
         properties={projects} 
         onFilteredResults={handleFilteredResults}
       />
       <div className="w-full max-w-7xl">
         <div className="mb-4 text-sm text-gray-600">
-          Showing {filteredProjects.length} of {projects.length} properties
+          Po Shfaqen {filteredProjects.length} prej {projects.length} pronave
         </div>
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 w-full">
           {filteredProjects.map((property) => (

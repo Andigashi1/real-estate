@@ -131,7 +131,7 @@ const Filters = ({ properties = [], onFilteredResults }) => {
           value={filters.propertyType}
           onChange={(e) => handleFilterChange("propertyType", e.target.value)}
         >
-          <option value="">Property Type</option>
+          <option value="">Lloji Prones</option>
           <option value="apartment">Apartment</option>
           <option value="villa">Villa</option>
           <option value="townhouse">Townhouse</option>
@@ -167,13 +167,13 @@ const Filters = ({ properties = [], onFilteredResults }) => {
           value={filters.bedrooms}
           onChange={(e) => handleFilterChange("bedrooms", e.target.value)}
         >
-          <option value="">Bedrooms</option>
+          <option value="">Numri i Dhomave</option>
           <option value="studio">Studio</option>
-          <option value="1">1 BR</option>
-          <option value="2">2 BR</option>
-          <option value="3">3 BR</option>
-          <option value="4">4 BR</option>
-          <option value="5+">5+ BR</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5+">5+</option>
         </select>
 
         {/* Price Range */}
@@ -182,7 +182,7 @@ const Filters = ({ properties = [], onFilteredResults }) => {
           value={filters.priceRange}
           onChange={(e) => handleFilterChange("priceRange", e.target.value)}
         >
-          <option value="">Price Range</option>
+          <option value="">Cmimi</option>
           <option value="0-500k">Under 500K AED</option>
           <option value="500k-1m">500K - 1M AED</option>
           <option value="1m-2m">1M - 2M AED</option>
@@ -197,7 +197,7 @@ const Filters = ({ properties = [], onFilteredResults }) => {
           <input
             type="text"
             name="search"
-            placeholder="Search properties..."
+            placeholder="Kerko prona..."
             className="border-2 border-foreground px-3 py-2 pl-10 rounded-lg w-full"
             value={filters.search}
             onChange={(e) => handleFilterChange("search", e.target.value)}

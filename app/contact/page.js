@@ -1,4 +1,5 @@
 import { Facebook, Instagram, Mail, Music2 } from "lucide-react";
+import { Parisienne } from "next/font/google";
 
 const socials = [
   { icon: <Instagram size={32} />, label: "Instagram", text: "dubaibyflamur", href: "https://www.instagram.com/dubaibyflamur/" },
@@ -7,12 +8,14 @@ const socials = [
   { icon: <Mail size={32} />, label: "Email", text: "mail", href: "#" },
 ];
 
+const parisienne = Parisienne({ subsets: ["latin"], weight: "400" });
+
 const Page = () => {
   return (
     <div className="pt-36 flex flex-col items-center gap-12 text-center px-4">
       <div className="space-y-2">
-        <h1 className="text-2xl md:text-4xl font-bold uppercase">
-          Get in touch with me
+        <h1 className={`text-2xl md:text-4xl font-bold ${parisienne.className}`}>
+          Një mesazh larg shtëpisë në Dubai
         </h1>
         <p>Kliko ikonat për t’i hapur</p>
       </div>

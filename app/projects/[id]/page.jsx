@@ -65,11 +65,11 @@ export default function ProjectDetails({ params }) {
     <div className="py-36 px-6 max-w-screen-lg mx-auto space-y-6">
       {isModalOpen && (
         <div
-          {...handlers}
           onClick={() => setIsModalOpen(false)}
           className="fixed inset-0 z-50 bg-black/75 flex flex-col items-center justify-center p-6"
         >
           <img
+            {...handlers}
             src={mainImage}
             alt="Enlarged"
             onClick={(e) => e.stopPropagation()}
@@ -143,7 +143,7 @@ export default function ProjectDetails({ params }) {
       )}
 
       {/* Thumbnails */}
-      <div className="overflow-x-auto whitespace-nowrap px-4 max-md:hidden">
+      <div className="flex justify-center overflow-y-hidden overflow-x-auto whitespace-nowrap p-4 max-md:hidden">
         <div className="inline-flex gap-3">
           {project.images.map((img) => (
             <img
@@ -162,33 +162,33 @@ export default function ProjectDetails({ params }) {
       {/* Project Info */}
       <div className="grid grid-cols-2 gap-4 mt-6 text-sm md:text-base bg-white rounded-lg px-8 py-10 shadow-md">
         <p>
-          <strong>Location:</strong> {locationLabel}
+          <strong>Lokacioni:</strong> {locationLabel}
         </p>
         <p>
-          <strong>Type:</strong> {capitalizeFirst(project.type)}
+          <strong>Lloji:</strong> {capitalizeFirst(project.type)}
         </p>
         <p>
-          <strong>Developer:</strong> {companyLabel}
+          <strong>Ndertuesi:</strong> {companyLabel}
         </p>
         <p>
-          <strong>Furnished:</strong> {capitalizeFirst(project.furnished)}
+          <strong>Mobilimi:</strong> {capitalizeFirst(project.furnished)}
         </p>
         <p>
-          <strong>Price Range:</strong> AED {project.minPrice.toLocaleString()}{" "}
+          <strong>Cmimi:</strong> AED {project.minPrice.toLocaleString()}{" "}
           – {project.maxPrice.toLocaleString()}
         </p>
         <p>
-          <strong>Area Range:</strong> {project.minArea} – {project.maxArea} m²
+          <strong>Madhesia:</strong> {project.minArea} – {project.maxArea} m²
         </p>
         <p>
-          <strong>New Launch:</strong> {project.newLaunch ? "Yes" : "No"}
+          <strong>Lansim i ri?:</strong> {project.newLaunch ? "Yes" : "No"}
         </p>
       </div>
 
       {/* Unit Types */}
       {project.unitTypes?.length > 0 && (
         <div className="bg-white rounded-lg px-8 py-10 shadow-md space-y-4">
-          <h2 className="text-xl font-semibold mb-4">Unit Types</h2>
+          <h2 className="text-xl font-semibold mb-4">Llojet</h2>
 
           {project.unitTypes.map((unit) => (
             <div
@@ -196,16 +196,16 @@ export default function ProjectDetails({ params }) {
               className="border-b last:border-b-0 pb-4 mb-4 last:pb-0 last:mb-0"
             >
               <p className="text-sm md:text-base">
-                <strong>Bedrooms:</strong>{" "}
-                {unit.bedrooms === 0 ? "Studio" : `${unit.bedrooms} BR`}
+                <strong>Dhoma:</strong>{" "}
+                {unit.bedrooms === 0 ? "Studio" : `${unit.bedrooms} ${unit.bedrooms === 1 ? 'Dhome Gjumi' : 'Dhoma Gjumi'}`}
               </p>
               <p className="text-sm md:text-base">
-                <strong>Price Range:</strong> AED{" "}
+                <strong>Cmimi:</strong> AED{" "}
                 {unit.minPrice.toLocaleString()} –{" "}
                 {unit.maxPrice.toLocaleString()}
               </p>
               <p className="text-sm md:text-base">
-                <strong>Area Range:</strong> {unit.minArea} – {unit.maxArea} m²
+                <strong>Madhesia:</strong> {unit.minArea} – {unit.maxArea} m²
               </p>
             </div>
           ))}

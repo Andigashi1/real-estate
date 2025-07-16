@@ -1,14 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #E9D8C3;
-  --foreground: #5d4230;
+  --background: #e3e5e7;
+  --foreground: #1E1A1D;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-button: 	#D97B52;
+  --color-button: #DA3E52;
+  --color-text: #64748b;
 }
 
 body {
@@ -24,4 +25,3 @@ body {
 .projectcard h2 {
   @apply font-bold text-xl;
 }
-
