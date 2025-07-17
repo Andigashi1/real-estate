@@ -32,10 +32,14 @@ export async function POST(request) {
       !data.title ||
       !data.slug ||
       !data.unitTypes ||
-      !Array.isArray(data.unitTypes)
+      !Array.isArray(data.unitTypes) ||
+      !data.type // Add validation for the main project type
     ) {
       return NextResponse.json(
-        { error: "Missing required fields: title, slug, and unitTypes array" },
+        {
+          error:
+            "Missing required fields: title, slug, unitTypes array, and project type",
+        },
         { status: 400 }
       );
     }
@@ -81,18 +85,21 @@ export async function POST(request) {
         minArea,
         maxArea,
         location: data.location,
-        type: data.type,
+        type: data.type, // Keep the main project type
         developer: data.developer,
         furnished: data.furnished,
         newLaunch: data.newLaunch || false,
         unitTypes: {
           create: data.unitTypes.map((unit) => ({
             bedrooms: Number(unit.bedrooms) || 0,
-            price: Number(unit.price) || undefined,
+            // Removed 'type' field from here
+            // Ensure you are using minPrice/maxPrice/minArea/maxArea consistently
             minPrice: Number(unit.minPrice) || undefined,
             maxPrice: Number(unit.maxPrice) || undefined,
             minArea: Number(unit.minArea) || undefined,
             maxArea: Number(unit.maxArea) || undefined,
+            // Add 'name' if you're saving it to the database
+            name: unit.name || null,
           })),
         },
       },

@@ -17,7 +17,7 @@ model Project {
   minArea             Float
   maxArea             Float
   location            String?
-  type                String?
+  type                Json?
   developer           String?
   furnished           String
   newLaunch           Boolean     @default(false)
@@ -31,7 +31,6 @@ model Project {
 
 model UnitType {
   id        Int     @id @default(autoincrement())
-  name      String?
   bedrooms  Int
   minPrice  Float
   maxPrice  Float

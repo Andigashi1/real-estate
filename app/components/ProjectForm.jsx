@@ -17,16 +17,13 @@ export default function ProjectForm({ params }) {
     slug: "",
     description: "",
     location: "",
-    // We will remove 'type' from here after migration,
-    // but for now, keep it to handle existing data if needed.
-    // In a new project, this 'type' field at the project level would be removed.
-    type: "", // This will eventually be removed or used for a "primary type" if necessary
+    type: "", // This is the main project-level type
     developer: "",
     furnished: "",
     newLaunch: false,
   });
 
-  // Unit types state - now includes 'type' field for each unit
+  // Unit types state - NO LONGER includes 'type' field for each unit
   const [unitTypes, setUnitTypes] = useState([
     {
       bedrooms: 0,
@@ -35,18 +32,8 @@ export default function ProjectForm({ params }) {
       minArea: "",
       maxArea: "",
       name: "",
-      type: "", // <-- NEW FIELD: Unit type (e.g., apartment, villa)
     },
   ]);
-
-  // Define allowed unit type options for the dropdown
-  const unitTypeOptions = [
-    { value: "apartment", label: "Apartment" },
-    { value: "villa", label: "Villa" },
-    { value: "townhouse", label: "Townhouse" },
-    { value: "penthouse", label: "Penthouse" },
-    { value: "studio", label: "Studio" },
-  ];
 
   useEffect(() => {
     if (params?.id) {
@@ -66,13 +53,13 @@ export default function ProjectForm({ params }) {
         slug: project.slug || "",
         description: project.description || "",
         location: project.location || "",
-        type: project.type || "", // Keep for existing data compatibility if needed
+        type: project.type || "", // Populate the main project type
         developer: project.developer || "",
         furnished: project.furnished || "",
         newLaunch: project.newLaunch || false,
       });
 
-      // Set unit types from project data, including the new 'type' field
+      // Set unit types from project data, EXCLUDING the 'type' field
       if (project.unitTypes && project.unitTypes.length > 0) {
         setUnitTypes(
           project.unitTypes.map((unit) => ({
@@ -82,32 +69,20 @@ export default function ProjectForm({ params }) {
             minArea: unit.minArea?.toString() || "",
             maxArea: unit.maxArea?.toString() || "",
             name: unit.name || getDefaultUnitName(unit.bedrooms),
-            type: unit.type || "", // Populate the new 'type' field
           }))
         );
       } else {
-        // If no unitTypes, consider initializing a default one
-        // and if project.type exists, use it for the first unit.
-        if (project.type) {
-            setUnitTypes([
-                {
-                    bedrooms: 0, // or a sensible default
-                    minPrice: "", maxPrice: "", minArea: "", maxArea: "",
-                    name: getDefaultUnitName(0),
-                    type: project.type, // Use the project-level type here
-                }
-            ]);
-        } else {
-            // Default empty unit type if no project.type or unitTypes
-            setUnitTypes([
-                {
-                    bedrooms: 0,
-                    minPrice: "", maxPrice: "", minArea: "", maxArea: "",
-                    name: getDefaultUnitName(0),
-                    type: "",
-                }
-            ]);
-        }
+        // Default empty unit type if no unitTypes
+        setUnitTypes([
+          {
+            bedrooms: 0,
+            minPrice: "",
+            maxPrice: "",
+            minArea: "",
+            maxArea: "",
+            name: getDefaultUnitName(0),
+          },
+        ]);
       }
 
       setImages(project.images || []);
@@ -139,21 +114,26 @@ export default function ProjectForm({ params }) {
     }));
   };
 
+  // Function to handle changes within individual unit type fields
   const handleUnitTypeChange = (index, field, value) => {
-    const updatedUnits = [...unitTypes];
-    updatedUnits[index] = {
-      ...updatedUnits[index],
-      [field]: value,
-      // Auto-update name if bedroom count changes
-      ...(field === "bedrooms"
-        ? { name: getDefaultUnitName(parseInt(value) || 0) }
-        : {}),
-    };
-    setUnitTypes(updatedUnits);
+    setUnitTypes((prev) =>
+      prev.map((unit, i) =>
+        i === index
+          ? {
+              ...unit,
+              [field]: value,
+              // Update name if bedrooms changes
+              ...(field === "bedrooms" && {
+                name: getDefaultUnitName(parseInt(value) || 0),
+              }),
+            }
+          : unit
+      )
+    );
   };
 
   const addUnitType = () => {
-    const nextBedrooms = Math.max(...unitTypes.map((u) => u.bedrooms)) + 1;
+    const nextBedrooms = unitTypes.length > 0 ? Math.max(...unitTypes.map((u) => u.bedrooms)) + 1 : 0;
     setUnitTypes([
       ...unitTypes,
       {
@@ -163,7 +143,6 @@ export default function ProjectForm({ params }) {
         minArea: "",
         maxArea: "",
         name: getDefaultUnitName(nextBedrooms <= 7 ? nextBedrooms : 1),
-        type: "", // NEW: Default empty type for new unit
       },
     ]);
   };
@@ -339,11 +318,14 @@ export default function ProjectForm({ params }) {
         alert("Project title is required");
         return;
       }
+      if (!formData.type.trim()) {
+        alert("Project Property Type is required");
+        return;
+      }
 
       // Validate unit types
       const validUnitTypes = unitTypes.filter(
         (unit) =>
-          unit.type && // Ensure type is selected
           unit.minPrice &&
           unit.maxPrice &&
           unit.minArea &&
@@ -352,32 +334,31 @@ export default function ProjectForm({ params }) {
       );
 
       if (validUnitTypes.length === 0) {
-        alert("At least one unit type with all required fields (Type, Bedrooms, Min/Max Price/Area) is required");
+        alert(
+          "At least one unit type with all required fields (Bedrooms, Min/Max Price/Area) is required"
+        );
         return;
       }
 
       // Validate that maxPrice >= minPrice and maxArea >= minArea
       for (const unit of validUnitTypes) {
         if (parseFloat(unit.maxPrice) < parseFloat(unit.minPrice)) {
-          alert("Max price must be greater than or equal to min price for all unit types.");
+          alert(
+            "Max price must be greater than or equal to min price for all unit types."
+          );
           return;
         }
         if (parseFloat(unit.maxArea) < parseFloat(unit.minArea)) {
-          alert("Max area must be greater than or equal to min area for all unit types.");
+          alert(
+            "Max area must be greater than or equal to min area for all unit types."
+          );
           return;
-        }
-        if (!unit.type) { // Double check type is not empty
-            alert("Please select a type for all unit types.");
-            return;
         }
       }
 
       // Prepare project data with unit types
       const projectData = {
         ...formData,
-        // Remove the project-level 'type' if you're fully migrating
-        // or set it based on unit types if you still need a primary type.
-        // For now, it's still present in formData, but consider its future.
         unitTypes: validUnitTypes.map((unit) => ({
           bedrooms: parseInt(unit.bedrooms) || 0,
           minPrice: parseFloat(unit.minPrice),
@@ -385,7 +366,6 @@ export default function ProjectForm({ params }) {
           minArea: parseFloat(unit.minArea),
           maxArea: parseFloat(unit.maxArea),
           name: unit.name || getDefaultUnitName(parseInt(unit.bedrooms) || 0),
-          type: unit.type, // Include the unit's specific type
         })),
       };
 
@@ -597,35 +577,28 @@ export default function ProjectForm({ params }) {
                 ))}
               </select>
             </div>
-            {/*
-              // ⚠️ IMPORTANT: If you decide to fully migrate `type` to `unitTypes`,
-              // you should remove this project-level 'type' select input.
-              // For now, keeping it commented out for consideration.
-            */}
-            {/*
             <div>
               <label
                 htmlFor="type"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Project Primary Type (Consider removing or repurposing)
+                Property Type *
               </label>
-              <select
-                name="type"
+              <input
+                type="text"
                 id="type"
+                name="type"
                 value={formData.type}
                 onChange={handleChange}
+                required // Added required for the main type field
                 className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Select Project Primary Type</option>
-                <option value="apartment">Apartment</option>
-                <option value="villa">Villa</option>
-                <option value="townhouse">Townhouse</option>
-                <option value="penthouse">Penthouse</option>
-                <option value="studio">Studio</option>
-              </select>
+                placeholder="e.g., apartment,penthouse or just apartment"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Enter multiple types separated by commas (e.g.,
+                apartment,penthouse)
+              </p>
             </div>
-            */}
             <div>
               <label
                 htmlFor="developer"
@@ -725,28 +698,6 @@ export default function ProjectForm({ params }) {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* Unit Type Select (e.g., Apartment, Villa) */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Unit Property Type *
-                    </label>
-                    <select
-                      value={unit.type} // Bind to unit.type
-                      onChange={(e) =>
-                        handleUnitTypeChange(index, "type", e.target.value)
-                      }
-                      required // Make this required
-                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="">Select Unit Type</option>
-                      {unitTypeOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
                   {/* Bedrooms Select */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -940,29 +891,37 @@ export default function ProjectForm({ params }) {
           {images.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {images.map((image) => (
-                <div
-                  key={image.id}
-                  className="relative border rounded-lg overflow-hidden group"
-                >
+                <div key={image.id} className="relative group">
                   <img
                     src={image.url}
-                    alt="Project"
-                    className="w-full h-32 object-cover"
-                    onError={(e) => {
-                      e.target.src =
-                        "https://via.placeholder.com/300x200?text=Image+Not+Found";
-                    }}
+                    alt="Project Image"
+                    className="w-full h-48 object-cover rounded-md"
                   />
-                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      type="button"
-                      onClick={() => deleteImage(image.id, image.isNew)}
-                      className="bg-red-600 text-white p-1 rounded-full hover:bg-red-700"
-                      title="Delete"
+                  <button
+                    type="button"
+                    onClick={() => deleteImage(image.id, image.isNew)}
+                    className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Delete Image"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
                     >
-                      ✕
-                    </button>
-                  </div>
+                      <path
+                        fillRule="evenodd"
+                        d="M9 2a1 1 0 00-1 1v1H5a1 1 0 000 2h1v10a2 2 0 002 2h8a2 2 0 002-2V6h1a1 1 0 100-2h-3V3a1 1 0 00-1-1H9zm1 2H9v1h2V4zm4 2H6v10h8V6z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+                  {image.isLocal && !image.isUploaded && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white rounded-md">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                      <span className="ml-2">Uploading...</span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -970,16 +929,14 @@ export default function ProjectForm({ params }) {
         </div>
 
         {/* Submit Button */}
-        <div className="text-right">
+        <div className="flex justify-end pt-6">
           <button
             type="submit"
-            disabled={loading}
-            className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 disabled:opacity-50"
+            disabled={loading || imagesLoading}
+            className="px-6 py-3 bg-blue-600 text-white rounded-md text-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading
-              ? isEdit
-                ? "Updating..."
-                : "Creating..."
+              ? "Saving..."
               : isEdit
               ? "Update Project"
               : "Create Project"}
