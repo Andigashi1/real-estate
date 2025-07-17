@@ -17,6 +17,8 @@ const Filters = ({ properties = [], onFilteredResults }) => {
 
   const [filteredProperties, setFilteredProperties] = useState(properties);
 
+
+
   // Handle filter changes
   const handleFilterChange = (filterType, value) => {
     const newFilters = { ...filters, [filterType]: value };
@@ -43,6 +45,14 @@ const Filters = ({ properties = [], onFilteredResults }) => {
       );
     }
 
+    // Filter by area
+    if (filters.area) {
+      filtered = filtered.filter(
+        (property) =>
+          property.area?.toLowerCase() === filters.area.toLowerCase()
+      );
+    }
+
     // Filter by developer
     if (filters.developer) {
       filtered = filtered.filter(
@@ -53,40 +63,75 @@ const Filters = ({ properties = [], onFilteredResults }) => {
 
     // Filter by bedrooms
     if (filters.bedrooms) {
-      if (filters.bedrooms === "studio") {
-        filtered = filtered.filter(
-          (property) =>
-            property.bedrooms === 0 || property.type?.toLowerCase() === "studio"
-        );
-      } else if (filters.bedrooms === "5+") {
-        filtered = filtered.filter((property) => property.bedrooms >= 5);
-      } else {
-        filtered = filtered.filter(
-          (property) => property.bedrooms === parseInt(filters.bedrooms)
-        );
-      }
+      filtered = filtered.filter((property) => {
+        // Extract unit types (same logic as in PropertyCard)
+        const units = property.unitTypes || [];
+        
+        if (units.length === 0) {
+          return false;
+        }
+        
+        // Calculate min and max bedrooms from unitTypes (same as PropertyCard)
+        const minBedrooms = Math.min(...units.map((u) => u.bedrooms ?? 0));
+        const maxBedrooms = Math.max(...units.map((u) => u.bedrooms ?? 0));
+        
+        if (filters.bedrooms === "studio") {
+          // Studio: check if range includes 0 bedrooms
+          return minBedrooms === 0;
+        } else if (filters.bedrooms === "5+") {
+          // 5+: check if max bedrooms is 5 or more
+          return maxBedrooms >= 5;
+        } else {
+          // Exact bedroom count: check if the selected number falls within the range
+          const selectedBedrooms = parseInt(filters.bedrooms);
+          return minBedrooms <= selectedBedrooms && maxBedrooms >= selectedBedrooms;
+        }
+      });
     }
 
-    // Filter by price range
+    // Filter by price range - Updated to handle price ranges
     if (filters.priceRange) {
       filtered = filtered.filter((property) => {
-        const price = property.price || 0;
+        // Get filter price range boundaries
+        let filterMin = 0;
+        let filterMax = Infinity;
+        
         switch (filters.priceRange) {
           case "0-500k":
-            return price < 500000;
+            filterMin = 0;
+            filterMax = 500000;
+            break;
           case "500k-1m":
-            return price >= 500000 && price < 1000000;
+            filterMin = 500000;
+            filterMax = 1000000;
+            break;
           case "1m-2m":
-            return price >= 1000000 && price < 2000000;
+            filterMin = 1000000;
+            filterMax = 2000000;
+            break;
           case "2m-5m":
-            return price >= 2000000 && price < 5000000;
+            filterMin = 2000000;
+            filterMax = 5000000;
+            break;
           case "5m-10m":
-            return price >= 5000000 && price < 10000000;
+            filterMin = 5000000;
+            filterMax = 10000000;
+            break;
           case "10m+":
-            return price >= 10000000;
+            filterMin = 10000000;
+            filterMax = Infinity;
+            break;
           default:
             return true;
         }
+        
+        // Check if property's price range overlaps with filter range
+        // Properties with minPrice and maxPrice from your schema
+        const propertyMin = property.minPrice || 0;
+        const propertyMax = property.maxPrice || property.minPrice || Infinity;
+        
+        // Two ranges overlap if: propertyMin <= filterMax AND propertyMax >= filterMin
+        return propertyMin <= filterMax && propertyMax >= filterMin;
       });
     }
 
@@ -106,7 +151,7 @@ const Filters = ({ properties = [], onFilteredResults }) => {
     if (typeof onFilteredResults === "function") {
       onFilteredResults(filtered);
     }
-  }, [filters, properties]); // Removed onFilteredResults from dependency array
+  }, [filters, properties]);
 
   // Clear all filters
   const clearAllFilters = () => {
@@ -136,7 +181,7 @@ const Filters = ({ properties = [], onFilteredResults }) => {
           <option value="villa">Villa</option>
           <option value="townhouse">Townhouse</option>
           <option value="penthouse">Penthouse</option>
-          <option value="studio">Studio</option>
+          <option value="mansion">Mansion</option>
         </select>
 
         {/* Location */}
@@ -151,7 +196,6 @@ const Filters = ({ properties = [], onFilteredResults }) => {
         </select>
 
         {/* Developers */}
-
         <select name="developers" id="developers"
         className="border-2 border-foreground px-3 py-2 rounded-lg min-w-40"
           value={filters.developer}

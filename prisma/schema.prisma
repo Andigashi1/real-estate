@@ -30,15 +30,16 @@ model Project {
 
 
 model UnitType {
-  id          Int     @id @default(autoincrement())
-  bedrooms    Int
-  minPrice    Float
-  maxPrice    Float
-  price       Float?  // Optional price field
-  minArea     Float
-  maxArea     Float
-  projectId   Int
-  project     Project @relation(fields: [projectId], references: [id])
+  id        Int     @id @default(autoincrement())
+  name      String?
+  bedrooms  Int
+  minPrice  Float
+  maxPrice  Float
+  price     Float?  
+  minArea   Float
+  maxArea   Float
+  projectId Int
+  project   Project @relation(fields: [projectId], references: [id])
 }
 
 
@@ -48,6 +49,7 @@ model Image {
   projectId Int
   project   Project @relation(fields: [projectId], references: [id])
 }
+
 
 model Admin {
   id       Int    @id @default(autoincrement())

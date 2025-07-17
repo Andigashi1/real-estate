@@ -1,24 +1,27 @@
 import Link from "next/link";
 import { areas, companies } from "../lib/areas";
-import { MapPin, Bed, Bath, Square, Eye } from "lucide-react";
+import { MapPin, Bed, Square } from "lucide-react";
 
 const typeColorMap = {
   Villa: "bg-red-600",
   Apartment: "bg-blue-600",
   Townhouse: "bg-purple-600",
   Penthouse: "bg-yellow-600",
+  Studio: "bg-green-600",
+  // Ensure consistency: If your data might have "studio" (lowercase), add it here
+  // or ensure the normalization handles it to match existing keys.
   Default: "bg-gray-600",
 };
 
 const PropertyCard = ({ property }) => {
   const formatPrice = (price) => {
+    if (!Number.isFinite(price)) {
+      return "N/A";
+    }
     if (price >= 1_000_000) return `${(price / 1_000_000).toFixed(1)}M`;
     if (price >= 1_000) return `${(price / 1_000).toFixed(0)}K`;
     return `${price}`;
   };
-
-  const normalizedType = (property.type || "Default").charAt(0).toUpperCase() + (property.type || "Default").slice(1).toLowerCase();
-  const typeClass = typeColorMap[normalizedType] || typeColorMap.Default;
 
   const imageUrl =
     property.images?.[0]?.url ||
@@ -31,24 +34,104 @@ const PropertyCard = ({ property }) => {
     companies.find((company) => company.value === property.developer)?.label ||
     property.developer;
 
-  // Extract unit types
   const units = property.unitTypes || [];
+  const hasUnits = units.length > 0;
 
-  const minPrice = Math.min(...units.map((u) => u.minPrice ?? Infinity));
-  const maxPrice = Math.max(...units.map((u) => u.maxPrice ?? 0));
+  const minPrice = hasUnits
+    ? Math.min(...units.map((u) => u.minPrice ?? Infinity))
+    : 0;
+  const maxPrice = hasUnits
+    ? Math.max(...units.map((u) => u.maxPrice ?? 0))
+    : 0;
 
-  const minArea = Math.min(...units.map((u) => u.minArea ?? Infinity));
-  const maxArea = Math.max(...units.map((u) => u.maxArea ?? 0));
+  const minArea = hasUnits
+    ? Math.min(...units.map((u) => u.minArea ?? Infinity))
+    : 0;
+  const maxArea = hasUnits
+    ? Math.max(...units.map((u) => u.maxArea ?? 0))
+    : 0;
 
-  const minBedrooms = Math.min(...units.map((u) => u.bedrooms ?? 0));
-  const maxBedrooms = Math.max(...units.map((u) => u.bedrooms ?? 0));
+  const validBedrooms = units.map((u) => u.bedrooms).filter((b) => b != null);
+
+  const minBedrooms =
+    hasUnits && validBedrooms.length > 0 ? Math.min(...validBedrooms) : 0;
+  const maxBedrooms =
+    hasUnits && validBedrooms.length > 0 ? Math.max(...validBedrooms) : 0;
 
   const bedroomLabel =
-    minBedrooms === maxBedrooms
-      ? minBedrooms === 0
-        ? "Studio"
-        : `${minBedrooms} BR`
-      : `${minBedrooms}–${maxBedrooms} BR`;
+    hasUnits && validBedrooms.length > 0
+      ? minBedrooms === maxBedrooms
+        ? minBedrooms === 0
+          ? "Studio"
+          : `${minBedrooms} BR`
+        : `${minBedrooms}–${maxBedrooms} BR`
+      : "N/A";
+
+  // --- Start of refined type handling ---
+
+  // Helper function to normalize a type string
+  const normalizeTypeString = (type) => {
+    if (!type || typeof type !== 'string' || type.trim() === '') {
+      return null; // Return null for invalid or empty strings
+    }
+    // Capitalize first letter, lowercase the rest
+    return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
+  };
+
+  const getUnitTypes = () => {
+    const collectedTypes = [];
+
+    // 1. Collect types from `unitTypes` if available
+    if (hasUnits) {
+      units.forEach(unit => {
+        const normalized = normalizeTypeString(unit.type);
+        if (normalized) {
+          collectedTypes.push(normalized);
+        }
+      });
+    }
+
+    // 2. If no types were collected from unitTypes OR if project has a direct 'type' property
+    //    and unitTypes are absent or didn't yield any types, use property.type as a fallback.
+    //    This handles cases where a project might *only* have a single 'type' property,
+    //    without a detailed 'unitTypes' array.
+    if (collectedTypes.length === 0 && property.type) {
+      const normalizedProjectType = normalizeTypeString(property.type);
+      if (normalizedProjectType) {
+        collectedTypes.push(normalizedProjectType);
+      }
+    }
+
+    // Return only unique types
+    return [...new Set(collectedTypes)];
+  };
+
+  const unitTypes = getUnitTypes();
+
+  // Function to render multiple type badges
+  const renderTypeBadges = () => {
+    if (unitTypes.length === 0) return null;
+
+    return (
+      <div className="flex gap-1">
+        {unitTypes.map((type, index) => {
+          // 'type' here is already normalized and validated by getUnitTypes
+          const typeClass = typeColorMap[type] || typeColorMap.Default;
+
+          return (
+            <span
+              key={index}
+              className={`${typeClass} text-white px-2 py-0.5 rounded-full text-xs font-semibold uppercase`}
+            >
+              {type}
+            </span>
+          );
+        })}
+      </div>
+    );
+  };
+  // --- End of refined type handling ---
+
 
   return (
     <Link href={`/projects/${property.id}`} className="group">
@@ -62,11 +145,7 @@ const PropertyCard = ({ property }) => {
           />
 
           <div className="absolute top-3 left-3">
-            <span
-              className={`${typeClass} text-white px-3 py-1 rounded-full text-xs font-semibold uppercase`}
-            >
-              {property.type}
-            </span>
+            {renderTypeBadges()}
           </div>
 
           <div className="absolute top-3 right-3">

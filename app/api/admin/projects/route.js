@@ -87,12 +87,12 @@ export async function POST(request) {
         newLaunch: data.newLaunch || false,
         unitTypes: {
           create: data.unitTypes.map((unit) => ({
-            bedrooms: unit.bedrooms,
-            minPrice: unit.minPrice,
-            maxPrice: unit.maxPrice,
-            price: unit.price,
-            minArea: unit.minArea,
-            maxArea: unit.maxArea,
+            bedrooms: Number(unit.bedrooms) || 0,
+            price: Number(unit.price) || undefined,
+            minPrice: Number(unit.minPrice) || undefined,
+            maxPrice: Number(unit.maxPrice) || undefined,
+            minArea: Number(unit.minArea) || undefined,
+            maxArea: Number(unit.maxArea) || undefined,
           })),
         },
       },

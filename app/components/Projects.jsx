@@ -35,11 +35,11 @@ const Projects = () => {
           {stats.map((stat, i) => (
             <div
               key={i}
-              className="bg-background text-center space-y-2 px-4 py-8 max-sm:w-36 max-sm:h-36 w-46 h-46"
+              className="bg-background text-center space-y-2 p-4 lg:py-8 max-sm:w-36 max-sm:h-36 w-46 h-46"
             >
               {stat.icon}
               <h2 className="text-xl font-semibold">{stat.label}</h2>
-              <p className="text-2xl">{stat.value}</p>
+              <p className="lg:text-2xl">{stat.value}</p>
             </div>
           ))}
         </div>
