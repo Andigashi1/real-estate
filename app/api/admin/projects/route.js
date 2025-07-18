@@ -98,8 +98,6 @@ export async function POST(request) {
             maxPrice: Number(unit.maxPrice) || undefined,
             minArea: Number(unit.minArea) || undefined,
             maxArea: Number(unit.maxArea) || undefined,
-            // Add 'name' if you're saving it to the database
-            name: unit.name || null,
           })),
         },
       },

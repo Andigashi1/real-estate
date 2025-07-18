@@ -1,127 +1,58 @@
 import { prisma } from "@/app/lib/prisma";
-import { NextResponse } from "next/server";
 
-export const runtime = "nodejs";
-
-// GET a single project
-export async function GET(req, { params }) {
-  const id = parseInt(params.id);
-  if (isNaN(id)) {
-    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
-  }
+export async function PUT(req, { params }) {
+  const { id } = params;
 
   try {
-    const project = await prisma.project.findUnique({
-      where: { id },
-      include: {
-        images: true,
-        unitTypes: {
-          orderBy: { bedrooms: "asc" },
-        },
-      },
-    });
+    const body = await req.json();
 
-    if (!project) {
-      return NextResponse.json({ error: "Project not found" }, { status: 404 });
-    }
-
-    return NextResponse.json(project);
-  } catch (error) {
-    console.error("Error fetching project:", error);
-    return NextResponse.json({ error: "Error fetching project" }, { status: 500 });
-  }
-}
-
-// PUT (update) a project
-export async function POST(request) {
-  try {
-    const data = await request.json();
-
-    // Validate required fields
-    if (!data.title || !data.slug || !data.unitTypes || !Array.isArray(data.unitTypes)) {
-      return NextResponse.json(
-        { error: "Missing required fields: title, slug, and unitTypes array" },
-        { status: 400 }
-      );
-    }
-
-    // Calculate min/max for the overall project
-    const allPrices = data.unitTypes.flatMap(unit => [unit.minPrice, unit.maxPrice]);
-    const allAreas = data.unitTypes.flatMap(unit => [unit.minArea, unit.maxArea]);
-
-    const minPrice = Math.min(...allPrices);
-    const maxPrice = Math.max(...allPrices);
-    const minArea = Math.min(...allAreas);
-    const maxArea = Math.max(...allAreas);
-
-    // Extract the prices for each unit type, including the "price" field
-    const allCheapest = data.unitTypes.flatMap(unit => [unit.cheapest]);
-    const allMostExpensive = data.unitTypes.flatMap(unit => [unit.mostExpensive]);
-    const cheapestPrice = Math.min(...allCheapest);
-    const mostExpensivePrice = Math.max(...allMostExpensive);
-
-    // Create the project and unit types
-    const project = await prisma.project.create({
+    // Convert numeric values to floats to avoid type mismatch
+    const unitTypes = body.unitTypes.map((unitType) => ({
+      where: { id: unitType.id },
       data: {
-        title: data.title,
-        slug: data.slug,
-        description: data.description,
-        minPrice,  // Use minPrice for cheapest price
-        maxPrice,  // Use maxPrice for most expensive price
-        minArea,
-        maxArea,
-        cheapestPrice, // Add cheapest price
-        mostExpensivePrice, // Add most expensive price
-        location: data.location,
-        type: data.type,
-        developer: data.developer,
-        furnished: data.furnished,
-        newLaunch: data.newLaunch || false,
-        unitTypes: {
-          create: data.unitTypes.map(unit => ({
-            bedrooms: unit.bedrooms,
-            minPrice: unit.minPrice,
-            maxPrice: unit.maxPrice,
-            price: unit.price || 0,  // Default value for missing price
-            minArea: unit.minArea,
-            maxArea: unit.maxArea,
-            cheapest: unit.cheapest,
-            mostExpensive: unit.mostExpensive,
-          }))
-        },
+        bedrooms: unitType.bedrooms,
+        minPrice: parseFloat(unitType.minPrice), // Ensure minPrice is a float
+        maxPrice: parseFloat(unitType.maxPrice), // Ensure maxPrice is a float
+        minArea: parseFloat(unitType.minArea),   // Ensure minArea is a float
+        maxArea: parseFloat(unitType.maxArea),   // Ensure maxArea is a float
       },
-      include: {
-        images: true,
+    }));
+
+    const updatedProject = await prisma.project.update({
+      where: { id: parseInt(id) },
+      data: {
+        title: body.title,
+        slug: body.slug,
+        description: body.description,
+        location: body.location,
+        type: body.type,
+        developer: body.developer,
+        furnished: body.furnished,
+        newLaunch: body.newLaunch,
         unitTypes: {
-          orderBy: { bedrooms: "asc" },
+          update: unitTypes,
         },
       },
     });
 
-    return NextResponse.json(project);
+    return new Response(JSON.stringify(updatedProject), { status: 200 });
   } catch (error) {
-    console.error("Error creating project:", error);
-    return NextResponse.json({ error: "Error creating project" }, { status: 500 });
+    console.error(error);
+    return new Response("Failed to update project", { status: 500 });
   }
 }
 
-
-// DELETE a project
 export async function DELETE(req, { params }) {
-  const id = parseInt(params.id);
-  if (isNaN(id)) {
-    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
-  }
+  const { id } = params;
 
   try {
-    // Ensure images are removed if cascade is not used
-    await prisma.image.deleteMany({ where: { projectId: id } });
+    await prisma.project.delete({
+      where: { id: parseInt(id) },
+    });
 
-    await prisma.project.delete({ where: { id } });
-
-    return NextResponse.json({ message: "Deleted successfully" });
-  } catch (err) {
-    console.error("Error deleting project:", err);
-    return NextResponse.json({ error: "Error deleting project" }, { status: 500 });
+    return new Response(null, { status: 204 }); // No Content
+  } catch (error) {
+    console.error("Failed to delete project:", error);
+    return new Response("Failed to delete project", { status: 500 });
   }
 }

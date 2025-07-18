@@ -79,7 +79,6 @@ export default function AdminDashboard() {
               <tr key={project.id}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">{project.title}</div>
-                  <div className="text-sm text-gray-500">{project.description}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {project.location}

@@ -26,10 +26,10 @@ export const getAllProjects = async () => {
 };
 
 // Get a single project by slug
-export const getProjectBySlug = async (slug) => {
+export const getProjectById = async (id) => {
   try {
     const project = await prisma.project.findUnique({
-      where: { slug },
+      where: { id: Number(id) }, // Cast id to a number
       include: { images: true },
     });
     return project;
@@ -38,11 +38,12 @@ export const getProjectBySlug = async (slug) => {
   }
 };
 
+
 // Update a project
-export const updateProject = async (slug, data) => {
+export const updateProject = async (id, data) => {
   try {
     const project = await prisma.project.update({
-      where: { slug },
+      where: { id },
       data,
     });
     return project;
@@ -52,10 +53,10 @@ export const updateProject = async (slug, data) => {
 };
 
 // Delete a project
-export const deleteProject = async (slug) => {
+export const deleteProject = async (id) => {
   try {
     const project = await prisma.project.delete({
-      where: { slug },
+      where: { id },
     });
     return project;
   } catch (error) {

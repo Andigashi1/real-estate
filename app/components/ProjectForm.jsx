@@ -219,20 +219,15 @@ export default function ProjectForm({ params }) {
   const handleFileUpload = async (files) => {
     setImagesLoading(true);
     try {
+      const uploadPromises = [];
+
       for (const file of files) {
-        if (!file.type.startsWith("image/")) {
-          console.warn(`Skipping non-image file: ${file.name}`);
-          continue;
-        }
-        if (file.size > 5 * 1024 * 1024) {
-          console.warn(`Skipping large file: ${file.name}`);
-          continue;
-        }
+        if (!file.type.startsWith("image/")) continue;
+        if (file.size > 5 * 1024 * 1024) continue;
 
         const previewUrl = URL.createObjectURL(file);
         const tempId = Date.now() + Math.random();
 
-        // Add to images array immediately for preview
         setImages((prev) => [
           ...prev,
           {
@@ -244,46 +239,42 @@ export default function ProjectForm({ params }) {
           },
         ]);
 
-        // If editing, upload immediately
         if (isEdit) {
           const formData = new FormData();
           formData.append("image", file);
 
-          try {
-            const res = await fetch(
-              `/api/admin/projects/${params.id}/images/upload`,
-              {
-                method: "POST",
-                body: formData,
+          const promise = fetch(`/api/admin/projects/${params.id}/images/upload`, {
+            method: "POST",
+            body: formData,
+          })
+            .then(async (res) => {
+              if (res.ok) {
+                const newImage = await res.json();
+                setImages((prev) =>
+                  prev.map((img) =>
+                    img.id === tempId ? { ...newImage, isUploaded: true } : img
+                  )
+                );
+              } else {
+                setImages((prev) => prev.filter((img) => img.id !== tempId));
+                throw new Error(`Failed to upload ${file.name}`);
               }
-            );
-
-            if (res.ok) {
-              const newImage = await res.json();
-              // Replace the temporary image with the uploaded one
-              setImages((prev) =>
-                prev.map((img) =>
-                  img.id === tempId ? { ...newImage, isUploaded: true } : img
-                )
-              );
-            } else {
-              // Remove the failed upload from images
+            })
+            .catch((err) => {
+              console.error(err);
               setImages((prev) => prev.filter((img) => img.id !== tempId));
-              console.error(`Failed to upload ${file.name}`);
-              alert(`Failed to upload ${file.name}`);
-            }
-          } catch (uploadError) {
-            console.error(`Upload error for ${file.name}:`, uploadError);
-            setImages((prev) => prev.filter((img) => img.id !== tempId));
-            alert(`Error uploading ${file.name}`);
-          }
+            });
+
+          uploadPromises.push(promise);
         }
       }
+
+      await Promise.all(uploadPromises);
     } catch (error) {
       console.error("File upload error:", error);
       alert("Error processing files");
     } finally {
-      setImagesLoading(false);
+      setImagesLoading(false); // ✅ Ensures this runs only after all uploads
     }
   };
 
@@ -916,12 +907,6 @@ export default function ProjectForm({ params }) {
                       />
                     </svg>
                   </button>
-                  {image.isLocal && !image.isUploaded && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white rounded-md">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                      <span className="ml-2">Uploading...</span>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>

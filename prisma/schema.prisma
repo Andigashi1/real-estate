@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 model Project {
@@ -12,43 +12,40 @@ model Project {
   title               String
   slug                String      @unique
   description         String?     @db.Text
-  minPrice            Float       // ✅ Must exist
+  minPrice            Float
   maxPrice            Float
   minArea             Float
   maxArea             Float
   location            String?
-  type                Json?
+  type                String?
   developer           String?
   furnished           String
   newLaunch           Boolean     @default(false)
   unitTypes           UnitType[]
   images              Image[]
-  createdAt           DateTime @default(now())
-  cheapestPrice       Float?      // optional if you use it
-  mostExpensivePrice  Float?      // optional if you use it
+  createdAt           DateTime    @default(now())
+  cheapestPrice       Float?
+  mostExpensivePrice  Float?
 }
 
-
 model UnitType {
-  id        Int     @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   bedrooms  Int
   minPrice  Float
   maxPrice  Float
-  price     Float?  
+  price     Float?
   minArea   Float
   maxArea   Float
   projectId Int
-  project   Project @relation(fields: [projectId], references: [id])
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
-
 
 model Image {
-  id        Int     @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   url       String
   projectId Int
-  project   Project @relation(fields: [projectId], references: [id])
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
-
 
 model Admin {
   id       Int    @id @default(autoincrement())

@@ -1,29 +1,69 @@
+"use client"
+
 import { TrendingUp, Building2, MapPin, DollarSign } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 const Projects = () => {
-  const stats = [
+  const [stats, setStats] = useState([
     {
       icon: <TrendingUp className="w-6 h-6 mx-auto" />,
       label: "Projects",
-      value: "152",
+      value: "...",
     },
     {
       icon: <Building2 className="w-6 h-6 mx-auto" />,
       label: "Companies",
-      value: "34",
+      value: "...",
     },
     {
       icon: <MapPin className="w-6 h-6 mx-auto" />,
       label: "Locations",
-      value: "21",
+      value: "...",
     },
     {
       icon: <DollarSign className="w-6 h-6 mx-auto" />,
       label: "Cmime",
-      value: "100K-30M AED",
+      value: "...",
     },
-  ];
+  ]);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('/api/stats');
+        const data = await response.json();
+        
+        setStats([
+          {
+            icon: <TrendingUp className="w-6 h-6 mx-auto" />,
+            label: "Projects",
+            value: data.projectCount?.toString() || "0",
+          },
+          {
+            icon: <Building2 className="w-6 h-6 mx-auto" />,
+            label: "Companies",
+            value: data.companyCount?.toString() || "0",
+          },
+          {
+            icon: <MapPin className="w-6 h-6 mx-auto" />,
+            label: "Locations",
+            value: data.locationCount?.toString() || "0",
+          },
+          {
+            icon: <DollarSign className="w-6 h-6 mx-auto" />,
+            label: "Cmime",
+            value: data.priceRange || "N/A",
+          },
+        ]);
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
   return (
     <div className="bg-foreground py-22 space-y-8 text-center px-8">
       <h1 className="font-bold text-background text-4xl uppercase">

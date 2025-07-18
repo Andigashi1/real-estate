@@ -47,9 +47,7 @@ const PropertyCard = ({ property }) => {
   const minArea = hasUnits
     ? Math.min(...units.map((u) => u.minArea ?? Infinity))
     : 0;
-  const maxArea = hasUnits
-    ? Math.max(...units.map((u) => u.maxArea ?? 0))
-    : 0;
+  const maxArea = hasUnits ? Math.max(...units.map((u) => u.maxArea ?? 0)) : 0;
 
   const validBedrooms = units.map((u) => u.bedrooms).filter((b) => b != null);
 
@@ -71,67 +69,58 @@ const PropertyCard = ({ property }) => {
 
   // Helper function to normalize a type string
   const normalizeTypeString = (type) => {
-    if (!type || typeof type !== 'string' || type.trim() === '') {
+    if (!type || typeof type !== "string" || type.trim() === "") {
       return null; // Return null for invalid or empty strings
     }
     // Capitalize first letter, lowercase the rest
     return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
   };
 
-  const getUnitTypes = () => {
-    const collectedTypes = [];
+  const types = property.type
+    ? property.type.split(",").map((t) => t.trim())
+    : [];
 
-    // 1. Collect types from `unitTypes` if available
-    if (hasUnits) {
-      units.forEach(unit => {
-        const normalized = normalizeTypeString(unit.type);
-        if (normalized) {
-          collectedTypes.push(normalized);
-        }
-      });
+  // Function to get class based on type
+  const getTypeClass = (type) => {
+    switch (type.toLowerCase()) {
+      case "apartment":
+        return "bg-blue-500";
+      case "penthouse":
+        return "bg-purple-500";
+      case "house":
+        return "bg-green-500";
+      case "villa":
+        return "bg-yellow-500";
+      case "condo":
+        return "bg-red-500";
+      default:
+        return "bg-gray-500";
     }
-
-    // 2. If no types were collected from unitTypes OR if project has a direct 'type' property
-    //    and unitTypes are absent or didn't yield any types, use property.type as a fallback.
-    //    This handles cases where a project might *only* have a single 'type' property,
-    //    without a detailed 'unitTypes' array.
-    if (collectedTypes.length === 0 && property.type) {
-      const normalizedProjectType = normalizeTypeString(property.type);
-      if (normalizedProjectType) {
-        collectedTypes.push(normalizedProjectType);
-      }
-    }
-
-    // Return only unique types
-    return [...new Set(collectedTypes)];
   };
-
-  const unitTypes = getUnitTypes();
 
   // Function to render multiple type badges
   const renderTypeBadges = () => {
-    if (unitTypes.length === 0) return null;
-
     return (
       <div className="flex gap-1">
-        {unitTypes.map((type, index) => {
-          // 'type' here is already normalized and validated by getUnitTypes
-          const typeClass = typeColorMap[type] || typeColorMap.Default;
-
-          return (
-            <span
-              key={index}
-              className={`${typeClass} text-white px-2 py-0.5 rounded-full text-xs font-semibold uppercase`}
-            >
-              {type}
-            </span>
-          );
-        })}
+        {types.length > 0 && (
+          <div className="flex flex-col gap-2">
+            {types.map((type, index) => {
+              const typeClass = getTypeClass(type);
+              return (
+                <span
+                  key={index}
+                  className={`${typeClass} text-white px-2 py-0.5 rounded-full text-xs font-semibold uppercase`}
+                >
+                  {type}
+                </span>
+              );
+            })}
+          </div>
+        )}
       </div>
     );
   };
   // --- End of refined type handling ---
-
 
   return (
     <Link href={`/projects/${property.id}`} className="group">
@@ -144,9 +133,7 @@ const PropertyCard = ({ property }) => {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
 
-          <div className="absolute top-3 left-3">
-            {renderTypeBadges()}
-          </div>
+          <div className="absolute top-3 left-3">{renderTypeBadges()}</div>
 
           <div className="absolute top-3 right-3">
             <span className="bg-white text-gray-900 px-3 py-1 rounded-full text-sm font-bold shadow-md">
