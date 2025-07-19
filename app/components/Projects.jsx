@@ -1,24 +1,29 @@
-"use client"
+"use client";
 
 import { TrendingUp, Building2, MapPin, DollarSign } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const Projects = () => {
+  const containerRef = useRef(null);
   const [stats, setStats] = useState([
     {
       icon: <TrendingUp className="w-6 h-6 mx-auto" />,
-      label: "Projects",
+      label: "Projekte",
       value: "...",
     },
     {
       icon: <Building2 className="w-6 h-6 mx-auto" />,
-      label: "Companies",
+      label: "Kompani",
       value: "...",
     },
     {
       icon: <MapPin className="w-6 h-6 mx-auto" />,
-      label: "Locations",
+      label: "Lokacione",
       value: "...",
     },
     {
@@ -29,25 +34,46 @@ const Projects = () => {
   ]);
 
   useEffect(() => {
+    if (!containerRef.current) return;
+
+    gsap.fromTo(
+      containerRef.current.children,
+      { opacity: 0, y: 50 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 1,
+        stagger: 0.2,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: "top 80%",
+          once: true, // Trigger the animation only once
+        },
+      }
+    );
+  }, []);
+
+  useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch('/api/stats');
+        const response = await fetch("/api/stats");
         const data = await response.json();
-        
+
         setStats([
           {
             icon: <TrendingUp className="w-6 h-6 mx-auto" />,
-            label: "Projects",
+            label: "Projekte",
             value: data.projectCount?.toString() || "0",
           },
           {
             icon: <Building2 className="w-6 h-6 mx-auto" />,
-            label: "Companies",
+            label: "Kompani",
             value: data.companyCount?.toString() || "0",
           },
           {
             icon: <MapPin className="w-6 h-6 mx-auto" />,
-            label: "Locations",
+            label: "Lokacione",
             value: data.locationCount?.toString() || "0",
           },
           {
@@ -57,7 +83,7 @@ const Projects = () => {
           },
         ]);
       } catch (error) {
-        console.error('Error fetching stats:', error);
+        console.error("Error fetching stats:", error);
       }
     };
 
@@ -65,13 +91,16 @@ const Projects = () => {
   }, []);
 
   return (
-    <div className="bg-foreground py-22 space-y-8 text-center px-8">
+    <div className="bg-foreground py-22 space-y-8 text-center px-8 max-md:h-screen">
       <h1 className="font-bold text-background text-4xl uppercase">
         Një Pasqyrë e Shkurtër e Projekteve
       </h1>
 
       <div className="flex justify-center">
-        <div className="grid grid-cols-2 md:grid-cols-4 place-items-center gap-6">
+        <div
+          ref={containerRef}
+          className="grid grid-cols-2 md:grid-cols-4 place-items-center gap-6"
+        >
           {stats.map((stat, i) => (
             <div
               key={i}
@@ -86,9 +115,7 @@ const Projects = () => {
       </div>
 
       <Link href="/projects" passHref>
-        <p
-          className="px-4 py-2 bg-button border-3 border-button hover:bg-transparent hover:text-button text-background font-bold uppercase cursor-pointer max-w-[15rem] mx-auto"
-        >
+        <p className="px-4 py-2 bg-button border-3 border-button hover:bg-transparent hover:text-button text-background font-bold uppercase cursor-pointer max-w-[15rem] mx-auto">
           Shiko Projektet
         </p>
       </Link>

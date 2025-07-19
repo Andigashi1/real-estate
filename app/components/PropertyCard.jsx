@@ -91,7 +91,7 @@ const PropertyCard = ({ property }) => {
         return "bg-green-500";
       case "villa":
         return "bg-yellow-500";
-      case "condo":
+      case "townhouse":
         return "bg-red-500";
       default:
         return "bg-gray-500";
@@ -109,7 +109,7 @@ const PropertyCard = ({ property }) => {
               return (
                 <span
                   key={index}
-                  className={`${typeClass} text-white px-2 py-0.5 rounded-full text-xs font-semibold uppercase`}
+                  className={`${typeClass} text-white px-2 mr-auto py-0.5 rounded-full text-xs font-semibold uppercase`}
                 >
                   {type}
                 </span>

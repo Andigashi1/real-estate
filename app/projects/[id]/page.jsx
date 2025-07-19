@@ -13,6 +13,21 @@ export default function ProjectDetails({ params }) {
   const [mainImage, setMainImage] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+    useEffect(() => {
+    if (isModalOpen) {
+      // Disable scroll
+      document.body.style.overflow = "hidden";
+    } else {
+      // Re-enable scroll
+      document.body.style.overflow = "";
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isModalOpen]);
+
   useEffect(() => {
     const fetchProject = async () => {
       const res = await fetch(`/api/projects/${id}`);
@@ -66,7 +81,7 @@ export default function ProjectDetails({ params }) {
       {isModalOpen && (
         <div
           onClick={() => setIsModalOpen(false)}
-          className="fixed inset-0 z-50 bg-black/75 flex flex-col items-center justify-center p-6"
+          className="fixed inset-0 z-50 bg-black/75 flex flex-col items-center justify-center p-6 mb-0"
         >
           <img
             {...handlers}
@@ -79,7 +94,7 @@ export default function ProjectDetails({ params }) {
           {/* Thumbnails inside modal */}
           <div
             onClick={(e) => e.stopPropagation()}
-            className="overflow-x-auto whitespace-nowrap w-full max-w-4xl"
+            className="overflow-x-auto overflow-y-hidden px-4 whitespace-nowrap w-full max-w-4xl mt-auto"
           >
             <div className="inline-flex gap-3 justify-center">
               {project.images.map((img) => (

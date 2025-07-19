@@ -1,6 +1,6 @@
 import { Facebook, Instagram, Mail } from "lucide-react";
 import { Parisienne } from "next/font/google";
-import Tiktok from "@/public/png-transparent-tiktok-brands-icon.png";
+import Tiktok from "@/public/tiktok.png";
 import Whatsapp from "@/public/whatsapp.png"
 import Image from "next/image";
 
@@ -14,7 +14,7 @@ const socials = [
   {
     icon: <Facebook size={32} />,
     label: "Facebook",
-    text: "facebook",
+    text: "Dubai By Flamur",
     href: "https://www.facebook.com/dubaibyflamur/",
   },
   {
@@ -28,7 +28,7 @@ const socials = [
       />
     ),
     label: "Tiktok",
-    text: "Tiktok",
+    text: "@dubaibyflamur",
     href: "https://www.tiktok.com/@dubaibyflamur/",
   },
   {

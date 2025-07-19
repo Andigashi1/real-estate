@@ -1,36 +1,49 @@
-import { put } from '@vercel/blob';
+import { del } from '@vercel/blob';
 import { prisma } from '@/app/lib/prisma';
 import { NextResponse } from 'next/server';
-import { randomUUID } from 'crypto';
 
 export const runtime = 'nodejs';
 
-export async function POST(request, { params }) {
+export async function DELETE(request, { params }) {
   try {
-    const formData = await request.formData();
-    const file = formData.get('image');
+    const { id, imageId } = params;
+    const projectId = parseInt(id);
+    const imageIdInt = parseInt(imageId);
 
-    if (!file || typeof file === 'string') {
-      return NextResponse.json({ error: 'Invalid file received' }, { status: 400 });
+    if (isNaN(projectId) || isNaN(imageIdInt)) {
+      return NextResponse.json({ error: 'Invalid project or image ID' }, { status: 400 });
     }
 
-    const uniqueName = `${Date.now()}-${randomUUID()}-${file.name}`;
-    const blob = await put(uniqueName, file, { access: 'public' });
-
-    if (!blob?.url) {
-      return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
-    }
-
-    const image = await prisma.image.create({
-      data: {
-        url: blob.url,
-        projectId: parseInt(params.id), // <-- This is correct for Int IDs!
+    // ✅ Make sure the image belongs to the given project
+    const image = await prisma.image.findFirst({
+      where: {
+        id: imageIdInt,
+        projectId: projectId,
       },
     });
 
-    return NextResponse.json(image, { status: 201 });
+    if (!image) {
+      return NextResponse.json({ error: 'Image not found for this project' }, { status: 404 });
+    }
+
+    // Optional: log it
+    console.log('Deleting blob:', image.url);
+
+    // Delete from Vercel Blob
+    try {
+      await del(image.url);
+    } catch (blobError) {
+      console.error('Blob deletion failed:', blobError);
+    }
+
+    // Delete from database
+    await prisma.image.delete({
+      where: { id: imageIdInt },
+    });
+
+    return NextResponse.json({ message: 'Image deleted successfully' });
   } catch (error) {
-    console.error('Upload failed:', error);
-    return NextResponse.json({ error: 'Server error during upload' }, { status: 500 });
+    console.error('Delete failed:', error);
+    return NextResponse.json({ error: 'Server error during deletion' }, { status: 500 });
   }
 }
